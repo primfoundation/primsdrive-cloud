@@ -53,6 +53,43 @@ Web UI (first slice): pack browser, health (king_ack / mini status), optional ag
 6. [#6 Human web login with Prims account](https://github.com/primfoundation/primsdrive-cloud/issues/6)
 7. [#7 Web UI pack browser](https://github.com/primfoundation/primsdrive-cloud/issues/7)
 
+## Edge stub ([#1](https://github.com/primfoundation/primsdrive-cloud/issues/1))
+
+Worker `primsdrive-cloud` is the public front door stub. `GET /` and `GET /health` return the health JSON below. `GET`/`POST`/other methods on `/v1` and `/v1/*` return a `/v1/*` placeholder. `/mcp` returns an `/mcp` placeholder. Nothing in this Worker reads Sandisk or opens a tunnel.
+
+Deploy checks: [docs/deploy.md](docs/deploy.md). DNS is **not** applied from this repo: [docs/dns-handoff.md](docs/dns-handoff.md) is the EidosDNS / Prims registry handoff.
+
+`GET /health` (and `GET /`):
+
+```json
+{
+  "ok": true,
+  "service": "primsdrive-cloud",
+  "status": "stub",
+  "host": "drive.prims.sh",
+  "sandisk": false,
+  "tunnel": false,
+  "routes": {
+    "/": "health",
+    "/health": "health",
+    "/v1/*": "placeholder",
+    "/mcp": "placeholder"
+  }
+}
+```
+
+Placeholder body (`/v1/*` shown; `/mcp` uses `"route": "/mcp"`):
+
+```json
+{
+  "ok": true,
+  "service": "primsdrive-cloud",
+  "status": "placeholder",
+  "route": "/v1/*",
+  "implemented": false
+}
+```
+
 ## Status
 
-**Plan / issues only.** No deploy yet.
+**Worker stub is in the repo. `drive.prims.sh` DNS is not applied here** — EidosDNS handoff only. No tunnel and no Sandisk access.

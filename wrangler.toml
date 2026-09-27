@@ -1,0 +1,9 @@
+# PrimsDrive edge stub. Account id is the Eidos AGI Cloudflare account that
+# owns zone prims.sh, copied from primfoundation/prims-sso wrangler.toml.
+# Do not add [[routes]] or custom_domain here: deploy must not create DNS.
+# Hostname handoff: docs/dns-handoff.md
+name = "primsdrive-cloud"
+account_id = "3c1d42c77978e6af0e458b6f1130c01b"
+main = "src/index.ts"
+compatibility_date = "2026-09-06"
+workers_dev = true

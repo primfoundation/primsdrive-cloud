@@ -1,0 +1,21 @@
+{
+  "name": "primsdrive-cloud",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Cloudflare edge stub for drive.prims.sh",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "dry-run": "wrangler deploy --dry-run",
+    "verify": "npm run typecheck && npm test && npm run dry-run"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.0",
+    "typescript": "5.9.2",
+    "wrangler": "4.142.0"
+  },
+  "engines": {
+    "node": ">=22.14"
+  }
+}

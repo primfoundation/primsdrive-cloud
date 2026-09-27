@@ -1,0 +1,5 @@
+## 2026-09-27T23:50:00Z tsconfig.json
+
+- **What changed:** Added `tsconfig.json` for `tsc --noEmit` on `src/` and `test/`.
+- **Why:** The Worker and contract tests import `.ts` extensions so Node's type stripper and Wrangler can load them. Typecheck needs `allowImportingTsExtensions`, which TypeScript only allows with `noEmit` (or `emitDeclarationOnly`) and a bundler-style resolver. This repo had no `tsconfig.json`. README deploy docs require `npm run verify`, which typechecks.
+- **Supporting Research:** [TypeScript: allowImportingTsExtensions](https://www.typescriptlang.org/tsconfig/allowImportingTsExtensions.html) — flag is valid only when `noEmit` or `emitDeclarationOnly` is set, because `.ts` import paths are resolved by the bundler or runtime (here Wrangler and `node --experimental-strip-types`), not by emitted JavaScript. `moduleResolution: Bundler` matches that model ([TSConfig reference](https://www.typescriptlang.org/tsconfig/)). Query: `TypeScript allowImportingTsExtensions noEmit moduleResolution bundler tsconfig 5.9`.
