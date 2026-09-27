@@ -45,15 +45,13 @@ Web UI (first slice): pack browser, health (king_ack / mini status), optional ag
 
 ## Workstreams
 
-Tracked as GitHub Issues (cross-linked):
-
-1. Cloudflare edge + DNS for `drive.prims.sh`
-2. mTLS tunnel Cloudflare → mini
-3. Mini-side worker serving packs from Sandisk
-4. Agent API key issuance + `/v1` CRUD
-5. `/mcp` endpoint
-6. Human web login with Prims account
-7. Web UI pack browser
+1. [#1 Cloudflare edge + DNS for drive.prims.sh](https://github.com/primfoundation/primsdrive-cloud/issues/1)
+2. [#2 mTLS tunnel Cloudflare → Mac mini](https://github.com/primfoundation/primsdrive-cloud/issues/2)
+3. [#3 Mini worker: serve Prim packs from Sandisk](https://github.com/primfoundation/primsdrive-cloud/issues/3)
+4. [#4 Agent API keys + /v1 pack CRUD](https://github.com/primfoundation/primsdrive-cloud/issues/4)
+5. [#5 /mcp endpoint for agents](https://github.com/primfoundation/primsdrive-cloud/issues/5)
+6. [#6 Human web login with Prims account](https://github.com/primfoundation/primsdrive-cloud/issues/6)
+7. [#7 Web UI pack browser](https://github.com/primfoundation/primsdrive-cloud/issues/7)
 
 ## Status
 
