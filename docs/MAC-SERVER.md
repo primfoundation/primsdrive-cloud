@@ -1,3 +1,80 @@
+# Verified profile mapping — 2026-09-28
+
+Current installed server: **0.1.2**, source `799865e` on the Mini.
+The physical profiles are under `/Volumes/Sandisk2TB/Prims/profiles`, not directly
+under Prims. Production `PROFILE_ROOT` now uses that verified subdirectory;
+KING remains the same Sandisk. The private profiles RPC returns only actual
+profile directories. Do not grant the container `profiles` as a tenant profile.
+
+Apple Accepted submission `be5b42c1-0cd9-4bb3-b1f4-0fd3fc56fd14`.
+Stapled ZIP SHA256: `bedd419470342b7139297b64d136cc2f7d843265eaeec268719b4a40066d89d8`.
+Ten packaged fixture checks passed on the Mini. Versions 0.1.0, 0.1.1 and 0.1.2
+have the same designated requirement (bundle + Apple chain + Eidos AGI team).
+Both upgrades retained disk permission; API calls succeeded without new consent.
+A real rollback to 0.1.0 and restoration to 0.1.2 also passed API disk health
+(receipt `652e8a08a446816cf5aac9fd0ee06ea0fe5a401ca0bf023059f16aeb61b8f6bb`).
+
+Real 0.1.2 server acceptance receipt:
+`1d2f6a2705e47fb36e94068b0ba267db7f935cef19b39a20d0c010b766838cde`.
+Twelve checks passed: actual profile mapping, unauthorized rejection, create ACK,
+exact read, duplicate and stale-update rejection, conditional update ACK, updated
+exact read, listing, traversal rejection, delete ACK, verified absence.
+The unique canary was in `eidos-agi` and is deleted. No existing pack was edited.
+Earlier 0.1.1 `_scratch` canary also passed and was removed.
+
+Observed profiles: aic-holdings, boone-voyage, daniel-shanklin-inbox,
+daniel-shanklin-personal, eidos-agi, greenmark-waste, howjadoo, jetta-operating.
+Backups: `~/Applications/PrimsDrive Server-0.1.0-backup.app` and
+`PrimsDrive Server-0.1.1-backup.app`; original hello plist remains `.before-server`.
+
+---
+
+# Live server acceptance — 2026-09-28
+
+The dedicated server 0.1.0 is installed at
+`/Users/dshanklin/Applications/PrimsDrive Server.app` on the Mini. Company
+Developer ID team Y6CQ4SWPWM, hardened runtime, timestamp, strict signature,
+Apple notarization, staple and Gatekeeper checks passed. Notary submission:
+`9cdce3ed-ca8b-4581-b8f0-0e2bdfb0f7a6` (Accepted).
+Archive SHA256: `6ef4c6e4d84901ba531c37f617e00d6b4db8c11530dfed486caef773b63baa70`.
+
+The Keychain problem was SSH-session-specific. Daniel's screenshot showed the
+login keychain unlocked; the same notarytool command succeeded in a visible
+Terminal desktop session. Signing and submitting from that session succeeded.
+Do not keep asking Daniel to unlock an already-unlocked keychain. No keys were
+exported or ACLs changed. 1Password integration is still future release work.
+
+The first bootstrap returned error 5; retry after the old job disappeared worked.
+The installer now bounds retries and restores the prior plist on persistent
+failure. Both regression tests pass (`python3 -m unittest discover -s scripts/tests -v`).
+
+KVM showed the actual PrimsDrive Server local-network prompt; Allow was clicked.
+A stale python3.11 cross-app-data prompt was dismissed with Don't Allow, revealing
+the queued PrimsDrive Server removable-volume prompt. Allow was clicked for the
+server. TCC logs attributed the volume request to `sh.prims.drive.server`.
+`/hello` now returns `sandisk:true`; authenticated `/rpc` health returns mounted
+and readable true (receipt `cc8bc4fdf5b465e2838da287743c5d920933bdaf971e81f6038e35535fa722e4`).
+The maintenance shell remains denied; that is not a server failure.
+
+Public `https://drive.prims.sh/health` returned a stub-shaped health response with
+sandisk/tunnel false (receipt `d7ee3240f9831854ca765c75ca42c4f322909c2ab6cb8441a0aaf89a7ae06811`).
+Root cause: the deployed issue-2 probe explicitly requires `sandisk === false`,
+so real disk success makes it incorrectly report tunnel false. The existing
+Worker version is `8ea0f952-1467-4c1b-9f58-228887b8e1cd`; its binding and secret
+are present. A health-only patch is prepared on `fix/storage-ready-health`. Do not redo DNS or create
+another worker/tunnel/identity issuer.
+
+Version 0.1.1 adds an authenticated private `profiles` RPC that lists only root
+directories, excluding symlinks/files, with pagination. Source built on Mini:
+`c8123f87cb908776d43fe74de21cd09ca0e1613f`; published source-equivalent commit:
+`a57e74a1e7268d2b036ceaee4e9b3a253b9b8a2a` (same Git tree).
+Ten packaged tests and full npm verify passed. Notary submission
+`ad3a841b-62f1-4a25-8f80-ccad9a6b2647` is Accepted, stapled, Gatekeeper accepted.
+Final ZIP SHA256: `50fe9d45ca1bc6d07c79a069fa4901a9cf300a92b43964475e7474cd1fdd55e1`.
+Upgrade, real canary and rollback outcomes follow below when verified.
+
+---
+
 # PrimsDrive Server on the Mac mini
 
 ## Boundary and triage

@@ -51,7 +51,8 @@ def main():
         raise SystemExit('Packaged self-test failed')
     run(['codesign','--verify','--deep','--strict',str(app)])
     signature = run(['codesign','-dv','--verbose=4',str(app)],capture_output=True).stderr
-    requirement = run(['codesign','-d','-r-',str(app)],capture_output=True).stderr
+    requirement_result = run(['codesign','-d','-r-',str(app)],capture_output=True)
+    requirement = requirement_result.stdout + requirement_result.stderr
     (out/'signature.txt').write_text(signature+'\n'+requirement)
     if a.mode == 'release':
         for expected in ('Authority='+IDENTITY, 'TeamIdentifier=Y6CQ4SWPWM', 'runtime', 'Timestamp='):

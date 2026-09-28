@@ -14,7 +14,10 @@ def run():
     from server import handler
     checks = []
     with tempfile.TemporaryDirectory(prefix='primsdrive-selftest-') as tmp:
-        root = pathlib.Path(tmp).resolve()
+        king = pathlib.Path(tmp).resolve()
+        root = king / 'profiles'
+        root.mkdir()
+        (king / 'outside-profiles.txt').write_text('must remain outside the API root')
         secret = 'a' * 64
         http = ThreadingHTTPServer(('127.0.0.1', 0), handler(Store(str(root)), secret))
         http.daemon_threads = True

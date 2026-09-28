@@ -37,7 +37,8 @@ def main():
     sig = run('codesign','-dv','--verbose=4',str(app)).stderr
     for expected in ('Identifier=sh.prims.drive.server','Authority='+IDENTITY,'TeamIdentifier=Y6CQ4SWPWM','runtime','Timestamp='):
         if expected not in sig: raise RuntimeError('Missing signature property '+expected)
-    (a.output/'signature.txt').write_text(sig+run('codesign','-d','-r-',str(app)).stderr)
+    requirement = run('codesign','-d','-r-',str(app))
+    (a.output/'signature.txt').write_text(sig+requirement.stdout+requirement.stderr)
     result = run(str(app/'Contents/MacOS/PrimsDriveServer'),'--self-test').stdout
     if json.loads(result).get('ok') is not True: raise RuntimeError('Signed self-test failed')
     (a.output/'self-test.json').write_text(result)

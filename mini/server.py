@@ -11,6 +11,7 @@ from pathlib import Path
 from store import MAX_BYTES, Store, StoreError, parts
 
 KING = '/Volumes/Sandisk2TB/Prims'
+PROFILE_ROOT = KING + '/profiles'
 VOLUME = '/Volumes/Sandisk2TB'
 
 
@@ -141,7 +142,7 @@ def main():
         raise SystemExit('Only --self-test is supported; production root and port are fixed')
     state = Path.home() / 'Library/Application Support/PrimsDriveCloud'
     secret = Path(os.environ.get('PRIMSDRIVE_PROBE_SECRET_FILE', str(state / 'probe-secret'))).read_text().strip()
-    server = ThreadingHTTPServer(('127.0.0.1', 18746), handler(Store(KING, VOLUME), secret))
+    server = ThreadingHTTPServer(('127.0.0.1', 18746), handler(Store(PROFILE_ROOT, VOLUME), secret))
     server.daemon_threads = True
     server.serve_forever()
 

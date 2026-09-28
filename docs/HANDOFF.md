@@ -1,3 +1,23 @@
+# Latest tested state — 2026-09-28
+
+Dedicated signed/notarized server **0.1.2 is installed on the Mini**. Real CRUD
+against the eidos-agi profile passed and the canary was deleted. Two signed
+upgrades retained disk permission without another approval. Correct profile
+root is `/Volumes/Sandisk2TB/Prims/profiles`. Read MAC-SERVER.md for receipts.
+The deployed edge probe falsely rejects sandisk:true; a health-only fix is in
+review on fix/storage-ready-health. MCP/OAuth is still not complete.
+
+# Live server continuation — 2026-09-28
+
+Read the newest section of [MAC-SERVER.md](MAC-SERVER.md). Company signing and
+notarization succeeded using the laptop's visible desktop session, even though
+SSH reported Keychain locked. The dedicated Mini server is installed and its
+native network/removable-volume prompts were approved through KVM. Its own API
+now proves Sandisk readable. The public URL currently returns the original
+stub, so older cloud-live claims must be reverified. Do not confuse shell disk
+permission with server permission. Version 0.1.1 has been built, signed and
+notarized for profile inventory and permission-continuity acceptance.
+
 # SSH continuation — 2026-09-28
 
 The laptop is reachable via the Mini's existing SSH alias `laptop`, despite
