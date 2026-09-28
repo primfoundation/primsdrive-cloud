@@ -10,8 +10,8 @@ king, or create a second identity issuer. PR #9 merged as
 | Issue | Implementation state | Required live acceptance |
 | --- | --- | --- |
 | #1 | Existing edge/domain live | Already proved; leave DNS alone |
-| #2 | Merged, deployed, verified | Complete; login startup (not pre-login boot) |
-| #3 | Candidate Python pack service + filesystem tests | Real Sandisk create/read/update/delete canary; currently OS access blocked |
+| #2 | Health fix PR #11 merged/deployed; tunnel and storage true | Public outage/recovery verified |
+| #3 | Signed/notarized dedicated server 0.1.2 installed on Mini | Real eidos-agi CRUD, cleanup, upgrades and rollback passed; edge acceptance remains |
 | #4 | Candidate SSO-backed scoped REST API | Real agent issue/rotate/revoke; immediate revoked-token rejection through edge |
 | #5 | Candidate stateless Streamable HTTP MCP | Real ChatGPT plugin OAuth connection and tool canary round-trip |
 | #6 | Candidate Access JWT verifier; upstream provider unfinished | Prims SSO OIDC → Access → Drive redirect/sign-in/logout/expiry proof |
@@ -23,9 +23,10 @@ Local validation passes but does not substitute for the live acceptance above.
 **Direct ChatGPT connection is a required deliverable.** See
 [CHATGPT-CONNECTION.md](CHATGPT-CONNECTION.md). Its OAuth provider work is ahead
 of web UI polish; generic bearer MCP tests alone do not close #5.
-The deployed Worker and mini retain the proven #2 hello implementation.
+The Mini now runs PrimsDrive Server 0.1.2. The deployed Worker still runs the
+health-only update from PR #11; tunnel and Sandisk readiness are live.
 
-## Concrete blockers found
+## Historical blockers (native disk blocker resolved below)
 
 Continuation 2026-09-28 UTC: Drive now requires explicit verified issuer
 configuration for discovery and returns ChatGPT's tool reauthorization metadata
@@ -71,7 +72,17 @@ Mini company signing identity and `eidos-notary` profile were absent on inspecti
 Existing signed Prims Desktop on port 7749 is a different product, not signing-key
 custody and not permission inheritance for this server.
 
-## Ordered execution from here
+## Current verified state — 2026-09-28
+
+Server identity, signing, notarization, native disk permission, real-profile CRUD,
+cleanup, permission continuity across two upgrades, and rollback/restore passed.
+Read MAC-SERVER.md for exact versions, receipts, and archive checksums. Profiles
+are under `/Volumes/Sandisk2TB/Prims/profiles`; eight names were read through the
+server. Account-to-profile grants still require existing SSO identity verification.
+The public edge health fix from PR #11 is deployed and verified, including outage/recovery. ChatGPT OAuth, live agent
+revocation, Access sign-in, and human browser acceptance remain unfinished.
+
+## Ordered execution from here (steps 1–2 completed)
 
 1. Build/sign the dedicated server and resolve OS access for its installed identity. Read only the
    immediate Prims children and record the actual profile contract.

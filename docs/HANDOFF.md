@@ -1,3 +1,16 @@
+# Current handoff — 2026-09-28
+
+**Mini server 0.1.2 and private cloud health are working.** Company-signed,
+notarized/stapled server is installed, real eidos-agi profile CRUD/cleanup passed,
+two upgrades preserved permissions, rollback/restore passed, and public health
+correctly reports server failure and recovery. Health-only PR #11 is merged and live.
+Worker version: `a4b6a971-0ab5-44af-8744-493e4ccffb8b`.
+Read the newest [MAC-SERVER.md](MAC-SERVER.md) sections for exact proof.
+
+Next work is scoped edge API/MCP acceptance and existing Prims/Stytch OAuth,
+including a real ChatGPT connection. Public /v1 and /mcp remain placeholders;
+PR #10 holds that candidate. Do not redo native permission/signing or DNS.
+
 # Latest tested state — 2026-09-28
 
 Dedicated signed/notarized server **0.1.2 is installed on the Mini**. Real CRUD

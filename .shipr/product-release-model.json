@@ -30,7 +30,8 @@
   "project_root": ".",
   "proof_commands": [
     "python3 -m unittest discover -s mini/tests -v",
-    "python3 mini/server.py --self-test"
+    "python3 mini/server.py --self-test",
+    "python3 -m unittest discover -s scripts/tests -v"
   ],
   "proof_source": "product model; signed artifact and real Sandisk gates also required",
   "purpose": "Tell AI agents how this product ships. Store repeatable release config and attempt ledgers. Does not ship, deploy, or run proofs.",

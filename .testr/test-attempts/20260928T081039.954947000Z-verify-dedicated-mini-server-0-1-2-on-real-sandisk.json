@@ -1,0 +1,15 @@
+{
+  "created_at": "2026-09-28T08:10:39.955164Z",
+  "goal": "Verify dedicated Mini server 0.1.2 on real Sandisk",
+  "notes": "Server component only; public health fix and ChatGPT OAuth remain",
+  "product_id": "source",
+  "proofs": [
+    "Mini receipt 1d2f6a2705e47fb36e94068b0ba267db7f935cef19b39a20d0c010b766838cde: twelve real eidos-agi profile checks passed and canary deleted",
+    "Receipt 652e8a08a446816cf5aac9fd0ee06ea0fe5a401ca0bf023059f16aeb61b8f6bb: rollback 0.1.0 and restore 0.1.2 retained disk access"
+  ],
+  "schema_version": 1,
+  "status": "passed",
+  "test_commands_snapshot": [
+    "npm test"
+  ]
+}

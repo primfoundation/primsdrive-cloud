@@ -1,3 +1,29 @@
+# Cloud health accepted — 2026-09-28
+
+Health-only PR #11 is merged (`5ac1874f25e787998c5ecacba129fe7a5bde79b4`) and deployed
+as Worker version `a4b6a971-0ab5-44af-8744-493e4ccffb8b`. Both drive.prims.sh and
+the existing workers.dev host return storage-ready, tunnel:true, sandisk:true.
+Existing DNS, VPC service, tunnel and secret were retained. No scoped API/MCP
+candidate was deployed; those routes remain placeholders.
+
+Independent secondlook LOOK-0004 (Codex backend review) completed successfully
+and found no release-blocking correctness/security issue. Earlier Claude review
+failed for missing login; 90-second Codex calls timed out. These were failures,
+not clean reviews. The scoped 300-second retry succeeded; its findings were read.
+GitHub CI and seven health-only tests passed before release.
+
+Public outage/recovery test passed: stopping only the Mini server changed health
+to tunnel:false/sandisk:false; restarting it returned storage-ready with both true.
+Receipt: `602f72f083df8f7b751b7ff42ee09dee5a77129610dc40d57af52a76bf5419de`.
+An earlier Python urllib request got Cloudflare 403, and cleanup restored service;
+that was a client-filtering failure. The repeat used the proven curl client.
+
+Next: real SSO account-to-profile assignment, scoped edge API/MCP CRUD and token
+revocation, then existing Prims/Stytch OAuth integration and actual ChatGPT tools.
+Do not call this whole-project completion.
+
+---
+
 # Verified profile mapping — 2026-09-28
 
 Current installed server: **0.1.2**, source `799865e` on the Mini.
