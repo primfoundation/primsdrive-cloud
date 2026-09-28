@@ -11,8 +11,13 @@ import plistlib
 import shutil
 import subprocess
 import sys
+import argparse
 
-state = pathlib.Path(sys.argv[1]).resolve()
+parser = argparse.ArgumentParser()
+parser.add_argument('state')
+parser.add_argument('--pack-service', action='store_true', help='Enable only after macOS grants the service access to Sandisk')
+args = parser.parse_args()
+state = pathlib.Path(args.state).resolve()
 state.mkdir(mode=0o700, parents=True, exist_ok=True)
 state.chmod(0o700)
 for name in ('probe-secret', 'tunnel-token'):
@@ -23,10 +28,15 @@ for name in ('probe-secret', 'tunnel-token'):
 node = shutil.which('node') or '/opt/homebrew/bin/node'
 cloudflared = shutil.which('cloudflared') or '/opt/homebrew/bin/cloudflared'
 shutil.copyfile(pathlib.Path(__file__).resolve().parent.parent / 'mini/hello.ts', state / 'hello.ts')
+if args.pack_service:
+    source = pathlib.Path(__file__).resolve().parent.parent / 'mini'
+    for filename in ('server.py', 'store.py'):
+        shutil.copyfile(source / filename, state / filename)
+hello_args = ['/usr/bin/python3', str(state / 'server.py')] if args.pack_service else [node, str(state / 'hello.ts')]
 agents = pathlib.Path.home() / 'Library/LaunchAgents'
 agents.mkdir(parents=True, exist_ok=True)
 jobs = {
-    'sh.prims.drive.hello': ([node, str(state / 'hello.ts')], {'PRIMSDRIVE_PROBE_SECRET_FILE': str(state / 'probe-secret')}),
+    'sh.prims.drive.hello': (hello_args, {'PRIMSDRIVE_PROBE_SECRET_FILE': str(state / 'probe-secret')}),
     'sh.prims.drive.tunnel': ([cloudflared, 'tunnel', '--no-autoupdate', 'run', '--token-file', str(state / 'tunnel-token')], {}),
 }
 for label, (args, env) in jobs.items():

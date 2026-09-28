@@ -10,28 +10,18 @@ export const HEALTH = {
   routes: {
     "/": "health",
     "/health": "health",
-    "/v1/*": "placeholder",
-    "/mcp": "placeholder",
+    "/v1/*": "agent-api",
+    "/mcp": "mcp",
   },
 } as const;
 
-export function json(body: unknown, status: number, extra?: HeadersInit): Response {
+export function json(body: unknown, status: number = 200, extra?: HeadersInit): Response {
   const headers = new Headers(extra);
   headers.set("content-type", "application/json; charset=utf-8");
   headers.set("cache-control", "no-store");
   headers.set("referrer-policy", "no-referrer");
   headers.set("x-content-type-options", "nosniff");
   return new Response(JSON.stringify(body), { status, headers });
-}
-
-export function placeholder(route: "/v1/*" | "/mcp"): Response {
-  return json({
-    ok: true,
-    service: SERVICE,
-    status: "placeholder",
-    route,
-    implemented: false,
-  }, 200);
 }
 
 export function notFound(): Response {

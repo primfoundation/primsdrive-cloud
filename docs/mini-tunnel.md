@@ -98,9 +98,7 @@ Fleet evidence receipts (read back, not merely queued):
 - Independent public-port failure and recovered healthy edge:
   `3ad84853c3aa1cd8e9f02e8311a69f5a73dd4047a8c6bb3c684251a498a004bc`
 
-Delivery: source is committed on local branch `issue-2-mini-tunnel`. Automatic
-approval review blocked the GitHub push pending explicit publishing approval.
-No PR has been created and issue #2 has not been closed. The live infrastructure
-and Worker update are already in place; retain this branch for publication.
+Delivery: Daniel authorized publication. PR #9 passed CI and merged as
+`e32feb2557a51e0e4e0d20f07728551a1b1d9ab1`; #2 is closed.
 
 Next: issue #3, a separate change to serve packs from the existing Sandisk king.
