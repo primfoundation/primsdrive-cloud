@@ -1,3 +1,5 @@
+> Current state: the hostname is already attached. Do not execute the historical DNS handoff below. Issue #2 adds the private `MINI_HELLO` binding and `MINI_PROBE_SECRET`; preserve both on updates. Use the existing Cloudflare MCP plane. See [mini-tunnel.md](mini-tunnel.md).
+
 # Deploy the `primsdrive-cloud` Worker
 
 Edge stub only. Deploy does not create DNS, open a tunnel, or read Sandisk. Hostname attachment is [docs/dns-handoff.md](dns-handoff.md).

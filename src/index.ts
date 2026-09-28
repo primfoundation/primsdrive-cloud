@@ -1,4 +1,5 @@
 import { HEALTH, json, methodNotAllowed, notFound, placeholder } from "./responses.ts";
+import { probeMini, type TunnelEnv } from './tunnel.ts';
 
 export type RouteKind = "health" | "v1" | "mcp" | "miss";
 
@@ -24,7 +25,10 @@ export function handleRequest(request: Request): Response {
 }
 
 export default {
-  fetch(request: Request): Promise<Response> {
-    return Promise.resolve(handleRequest(request));
+  async fetch(request: Request, env: TunnelEnv = {}): Promise<Response> {
+    if (classify(new URL(request.url).pathname) === 'health' && request.method === 'GET') {
+      return json({ ...HEALTH, tunnel: await probeMini(env) }, 200);
+    }
+    return handleRequest(request);
   },
 };

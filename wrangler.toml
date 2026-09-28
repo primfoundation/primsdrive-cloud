@@ -7,3 +7,8 @@ account_id = "3c1d42c77978e6af0e458b6f1130c01b"
 main = "src/index.ts"
 compatibility_date = "2026-09-06"
 workers_dev = true
+
+# Private hello service only. No public hostname or DNS route.
+[[vpc_services]]
+binding = "MINI_HELLO"
+service_id = "01a0e621-4249-7040-9f18-5a3cc637c652"
