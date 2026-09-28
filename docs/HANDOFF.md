@@ -1,3 +1,13 @@
+# SSH continuation — 2026-09-28
+
+The laptop is reachable via the Mini's existing SSH alias `laptop`, despite
+Fleet reporting its heartbeat offline. The company Developer ID is present
+there. Exact Mini-built artifact and source are staged on the laptop; signing
+failed with `errSecInternalComponent`, and notarytool reports the login Keychain
+locked. Keychain Access has been opened for local unlock. Resume the prepared
+signing route in [MAC-SERVER.md](MAC-SERVER.md); no private-key transfer needed.
+Do not repeat the incorrect assumption that Fleet heartbeat means SSH offline.
+
 # Signed server continuation — 2026-09-28
 
 Read [MAC-SERVER.md](MAC-SERVER.md) first for the corrected server/client boundary,

@@ -118,3 +118,46 @@ from an already-signed installed app. No secret export, certificate creation,
 revocation or permission modification was attempted. Signing, notarization,
 production installation, Sandisk CRUD and upgrade permission continuity remain
 unproven. Follow the credential custody runbook; never paste private keys here.
+
+## SSH signing route correction — 2026-09-28
+
+Fleet's laptop heartbeat is stale, but the Mini's existing SSH alias `laptop`
+reaches `dshanklinbv@100.72.135.59` with existing host-key verification. Do not
+infer SSH reachability from Fleet heartbeat. The laptop DOES contain the company
+Developer ID identity (fingerprint `6CD0067D35977EA48B528BDA26511C0403A76E3B`).
+Its login Keychain is locked: notarytool returned `keychainLocked`; an actual
+candidate executable signing attempt returned `errSecInternalComponent`.
+Keychain Access was opened via shell for native local unlock. No password was
+retrieved, security control disabled, ACL changed or private key exported.
+
+The original Mini-built archive and corresponding source are staged on laptop:
+`~/primsdrive-signing-83c75b3/`. `candidate.zip` SHA256:
+`dde6d3df197b71d4bbbc046f26c76efbff054f31cfebd71c6028916d08a3ab42`.
+The original Mini app remains intact. The failed signing attempt modified only
+an extracted signing copy; always start the real run in a NEW output directory.
+
+After local login Keychain unlock, use the staged script (also committed as
+`macos/sign-candidate.py`) to verify archive hash, extract a fresh copy, sign
+nested Mach-O code and frameworks inside-out, sign the bundle, verify company
+identity/runtime/timestamp, and run its packaged HTTP self-test. It leaves keys
+on the laptop and produces a submission archive, not a notarization claim.
+
+```sh
+cd ~/primsdrive-signing-83c75b3
+python3 sign-candidate.py candidate.zip \
+  --sha256 dde6d3df197b71d4bbbc046f26c76efbff054f31cfebd71c6028916d08a3ab42 \
+  --output signed-attempt-1
+xcrun notarytool submit signed-attempt-1/submission.zip \
+  --keychain-profile eidos-notary --output-format json > signed-attempt-1/submission.json
+```
+
+Record submission ID; poll that ID rather than uploading again. On Accepted,
+staple and verify the app, make a final archive, checksum it, transfer that archive
+back over SSH and verify its checksum on Mini. Repeat packaged self-test there,
+then perform the installation and Sandisk gates above. The profile's presence
+and validity remain unverified until the Keychain is unlocked.
+
+Receipts: SSH identity/notary check
+`362985ef2d9019a22f45b5e316d340cfcdafd032fa3c33372791c722b26ac058`;
+artifact transfer `502e12df4e4be9c975a1f271c5f16eca58d36899d2014f9fdc8eb93faafc293b`;
+real signing attempt `bfb2857bf74accf26c1eec57f7e400b6a85096203c87e2f219a287550413fa0d`.
