@@ -52,9 +52,10 @@ async function sso(env: AgentEnv, path: string, body: unknown): Promise<Response
 }
 export async function authenticate(request: Request, env: AgentEnv, oauth = false): Promise<Identity> {
   // Never interpret a session cookie or Stytch session token as an agent credential.
-  const token = /^Bearer (agt_[A-Za-z0-9_-]{43})$/.exec(request.headers.get('authorization') ?? '')?.[1];
+  const pattern = oauth ? /^Bearer ([A-Za-z0-9._~+/-]{1,16384}={0,2})$/ : /^Bearer (agt_[A-Za-z0-9_-]{43})$/;
+  const token = pattern.exec(request.headers.get('authorization') ?? '')?.[1];
   if (!token) throw new ApiError(401, 'agent_bearer_required');
-  const res = await sso(env, '/v1/agent-tokens/introspect', { token });
+  const res = await sso(env, oauth ? '/v1/oauth/introspect' : '/v1/agent-tokens/introspect', { token });
   if (res.status === 401) throw new ApiError(401, 'invalid_agent_token');
   if (res.status !== 200) throw new ApiError(503, 'identity_unavailable');
   const id = await res.json() as Record<string, unknown>;

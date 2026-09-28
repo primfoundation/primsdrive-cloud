@@ -2,7 +2,7 @@ import { ApiError, authenticate, boundedJson, operation, type AgentEnv } from '.
 import { json } from './responses.ts';
 import { challenge } from './oauth-resource.ts';
 const VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26'];
-const properties = { profile: { type: 'string', description: 'Assigned top-level directory under the Sandisk Prims root.' },
+const properties = { profile: { type: 'string', description: 'Assigned directory under the Sandisk Prims/profiles root.' },
   path: { type: 'string', description: 'Relative object or directory path within that profile.' },
   offset: { type: 'integer', minimum: 0 }, content_base64: { type: 'string' },
   match: { type: 'string', description: 'ETag from get; required to overwrite or delete.' },

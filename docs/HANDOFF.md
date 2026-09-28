@@ -1,5 +1,16 @@
 # Current handoff — 2026-09-28
 
+OAuth continuation: candidate Drive now accepts provider-form MCP credentials
+through the existing SSO's online introspection adapter; REST retains agent tokens.
+SSO candidate checks issuer, audience, expiry, client, scope and existing account/
+agent ownership. Local validation: 30 SSO tests plus account-store test; 19 Drive,
+5 filesystem and 2 installer tests; both typechecks and Drive dry-run passed.
+These are candidate/fixture proofs, not live OAuth acceptance. Current live probe
+receipt `a08b78ae7664fc37d38301f79f2223467d74ce02c35e2763fddee878d52ae060`
+confirms storage-ready and `/mcp` still a placeholder. Read CHATGPT-CONNECTION.md
+for remaining identity/provider/browser-scope gates. Never grant real profiles
+to the existing fixture accounts or enable OAuth discovery before verification.
+
 **Mini server 0.1.2 and private cloud health are working.** Company-signed,
 notarized/stapled server is installed, real eidos-agi profile CRUD/cleanup passed,
 two upgrades preserved permissions, rollback/restore passed, and public health

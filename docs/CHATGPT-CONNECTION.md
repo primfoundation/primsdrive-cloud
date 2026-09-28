@@ -20,7 +20,7 @@ serve non-ChatGPT agent clients but does **not** satisfy ChatGPT connection setu
 The current Prims SSO issuer has agent-token APIs but no completed OAuth provider.
 SSO PR [#11](https://github.com/primfoundation/prims-sso/pull/11) now supplies a
 tested, disabled-by-default passkey continuation and Connected Apps consent
-adapter. It is not deployed and does not yet supply OAuth token introspection.
+adapter. It is not deployed and does not yet been activated for OAuth token introspection.
 Plugin directory lookup returned no existing PrimsDrive plugin to install.
 
 This elevates prims-sso#2 from a browser-only dependency to a **ChatGPT/MCP release
@@ -84,3 +84,23 @@ Official references checked 2026-09-27:
 - https://developers.openai.com/plugins/build/auth
 - https://developers.openai.com/plugins/build/mcp-server
 - https://learn.chatgpt.com/docs/extend/mcp
+
+## 2026-09-28 OAuth adapter follow-through
+
+Drive now routes provider-form bearer tokens on OAuth-mode MCP to SSO
+`/v1/oauth/introspect`. Legacy REST retains its `agt_` contract. SSO checks
+Stytch online on every call, validates issuer/client/access-token type/expiry/
+audience/scopes, then resolves an existing account and explicit agent assignment.
+No account, agent, token issuer, or profile grant is auto-created.
+
+Live inspection receipt `028a8048b2a96532009aaf3e0b41f6dfba40ab004b02002852281f652182087a`
+found only six earlier test accounts and six test agents in Prims SSO D1. None
+was Daniel's real account. The public SSO health still reports Stytch `test`.
+Do not assign real Sandisk profiles to those fixture identities.
+
+Fleet browser documentation reported `scope_required` for browser-read and
+browser-control on the current connector token. Opera requires reauthentication.
+The cloud Stytch dashboard is at sign-in. These are access/configuration gates,
+not disk permission failures. Actual ChatGPT installation and live OAuth
+refresh/revocation remain unverified. Keep activation flags disabled until the
+existing Stytch project is configured and Daniel signs in with his real identity.

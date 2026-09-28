@@ -109,3 +109,17 @@ it('MCP insufficient OAuth scope returns the ChatGPT reauthorization signal with
   assert.match(b.result._meta['mcp/www_authenticate'][0],/insufficient_scope.*primsdrive.write/);
   assert.equal(state.miniCalls,0);
 });
+
+it('provider OAuth tokens use the issuer adapter; legacy REST stays on its own token contract',async()=>{
+  const {env,state}=setup();const providerToken='eyJhbGciOiJSUzI1NiJ9.claims.signature';
+  const enabled={...env,MCP_OAUTH_ENABLED:'true',PRIMS_SSO:{fetch:async(r:Request)=>{
+    assert.equal(new URL(r.url).pathname,'/v1/oauth/introspect');
+    assert.equal((await r.json() as any).token,providerToken);
+    return Response.json({active:true,account_id:'owner',agent_id:'agent',resource:'https://drive.prims.sh',scope:'primsdrive.read'});
+  }}};
+  const result=await worker.fetch(request('/mcp','POST',{jsonrpc:'2.0',id:1,method:'tools/list'},
+    {authorization:'Bearer '+providerToken,accept:'application/json, text/event-stream'}),enabled);
+  assert.equal(result.status,200);assert.equal((await result.json() as any).result.tools.length,5);
+  assert.equal((await worker.fetch(request('/v1/packs?profile=canary','GET',undefined,{authorization:'Bearer '+providerToken}),enabled)).status,401);
+  assert.equal(state.miniCalls,0);
+});
