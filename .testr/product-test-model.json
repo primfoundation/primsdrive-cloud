@@ -1,0 +1,41 @@
+{
+  "description": "Dedicated Mini server and existing Cloudflare/MCP client gateway",
+  "evidence_paths": [
+    "docs/MAC-SERVER.md",
+    "candidate/self-test.json",
+    "candidate/signature.txt"
+  ],
+  "learning_questions": [
+    "What failed that the ship path assumed green?",
+    "Which test should become a shipr proof_command?",
+    "What is flaky vs broken?"
+  ],
+  "memory_paths": {
+    "attempts_dir": ".testr/test-attempts",
+    "model": ".testr/product-test-model.json"
+  },
+  "methods_source": "test-forge (retired) \u2192 testr",
+  "product_id": "primsdrive-cloud",
+  "project_root": ".",
+  "purpose": "Tell AI agents how this product is proven. Store repeatable test config and attempt ledgers. Does not execute tests.",
+  "related_operators": [
+    "shipr"
+  ],
+  "related_shipr": {
+    "loaded": false,
+    "model_path": ".shipr/product-release-model.json",
+    "note": "shipr should use these test_commands as proof_commands when shipping",
+    "operator": "shipr"
+  },
+  "role": "ai_config_and_memory",
+  "schema_version": 1,
+  "test_commands": [
+    "python3 -m unittest discover -s mini/tests -v",
+    "python3 mini/server.py --self-test"
+  ],
+  "test_suites": [
+    "Mini filesystem isolation",
+    "Packaged server HTTP fixture acceptance"
+  ],
+  "updated_at": "2026-09-28T07:10:55.653799Z"
+}

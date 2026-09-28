@@ -1,0 +1,14 @@
+{
+  "created_at": "2026-09-28T07:10:55.654988Z",
+  "goal": "Run exact Mini-built server archive on signing laptop",
+  "notes": "Fixture only; no Sandisk or production claim",
+  "product_id": "source",
+  "proofs": [
+    "Packaged --self-test: nine HTTP fixture checks passed; archive SHA256 dde6d3df197b71d4bbbc046f26c76efbff054f31cfebd71c6028916d08a3ab42"
+  ],
+  "schema_version": 1,
+  "status": "passed",
+  "test_commands_snapshot": [
+    "npm test"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "approval_gates": [
+    "native Keychain authentication when locked",
+    "native server disk consent when required"
+  ],
+  "artifact_types": [
+    "PrimsDrive Server.app",
+    "notarized stapled ZIP"
+  ],
+  "description": "Dedicated Mini server and existing Cloudflare/MCP client gateway",
+  "distribution_channels": [
+    "authorized Mini install"
+  ],
+  "forge_stack": [
+    "testr"
+  ],
+  "learning_questions": [
+    "What broke or slowed this release?",
+    "What proof was missing until late?",
+    "Which gate should become automatic next time?",
+    "Which human approval should remain explicit?"
+  ],
+  "license": null,
+  "memory_paths": {
+    "attempts_dir": ".shipr/release-attempts",
+    "model": ".shipr/product-release-model.json"
+  },
+  "open_source_status": "unknown",
+  "product_id": "primsdrive-cloud",
+  "project_root": ".",
+  "proof_commands": [
+    "python3 -m unittest discover -s mini/tests -v",
+    "python3 mini/server.py --self-test"
+  ],
+  "proof_source": "product model; signed artifact and real Sandisk gates also required",
+  "purpose": "Tell AI agents how this product ships. Store repeatable release config and attempt ledgers. Does not ship, deploy, or run proofs.",
+  "related_testr": {
+    "loaded": true,
+    "model_path": ".testr/product-test-model.json",
+    "note": "When present, testr test_commands become shipr proof_commands"
+  },
+  "repository_visibility": "unknown",
+  "role": "ai_config_and_memory",
+  "rollback_paths": [
+    "docs/MAC-SERVER.md"
+  ],
+  "schema_version": 1,
+  "updated_at": "2026-09-28T07:10:55.654727Z"
+}
