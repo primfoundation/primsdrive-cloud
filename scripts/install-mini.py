@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import argparse
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('state')
@@ -74,5 +75,23 @@ for label, (args, env) in jobs.items():
     path.chmod(0o600)
     domain = f'gui/{os.getuid()}'
     subprocess.run(['launchctl', 'bootout', f'{domain}/{label}'], capture_output=True)
-    subprocess.run(['launchctl', 'bootstrap', domain, str(path)], check=True)
+    # bootout may return before launchd has finished removing the old job.
+    # A confirmed retry recovered this race on the Mini; bound retries and
+    # restore the previous job if the replacement still cannot bootstrap.
+    result = None
+    for attempt in range(6):
+        result = subprocess.run(['launchctl', 'bootstrap', domain, str(path)],
+                                capture_output=True, text=True)
+        if result.returncode == 0:
+            break
+        if attempt < 5:
+            time.sleep(1)
+    if result.returncode:
+        backup = path.with_suffix('.plist.before-server')
+        if backup.exists():
+            shutil.copy2(backup, path)
+            restored = subprocess.run(['launchctl', 'bootstrap', domain, str(path)],
+                                      capture_output=True, text=True)
+            print('Rollback bootstrap exit code:', restored.returncode, file=sys.stderr)
+        raise SystemExit('Server bootstrap failed: ' + result.stderr.strip())
     print(f'Installed {label}; starts on login and restarts on failure')

@@ -42,6 +42,11 @@ def run():
             one = base64.b64encode(b'first').decode()
             created = rpc(obj('put', content_base64=one, create=True))
             assert created['king_ack']; checks.append('create_ack')
+            (root/'not-a-profile.txt').write_text('fixture')
+            (root/'alias').symlink_to(root/'canary')
+            rpc({'op':'profiles'}, 401, token='wrong')
+            assert [p['name'] for p in rpc({'op':'profiles'})['entries']] == ['canary']
+            checks.append('authenticated_profile_inventory')
             assert rpc(obj('get'))['content_base64'] == one; checks.append('read_exact_bytes')
             rpc(obj('put', content_base64=one, create=True), 412)
             rpc(obj('put', content_base64=one, match='stale'), 412)

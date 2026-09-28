@@ -92,6 +92,11 @@ def handler(store, secret):
                 op = body.get('op')
                 if op == 'health':
                     return self.reply(200, store.health())
+                if op == 'profiles':
+                    result = store.listing('', body.get('offset', 0))
+                    result['entries'] = [entry for entry in result['entries']
+                                         if entry['kind'] == 'directory']
+                    return self.reply(200, result)
                 profile = body.get('profile')
                 if len(parts(profile)) != 1:
                     raise StoreError(400, 'invalid_profile')

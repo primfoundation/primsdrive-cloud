@@ -14,6 +14,6 @@ exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='PrimsDriveServer',
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='PrimsDriveServer')
 app = BUNDLE(coll, name='PrimsDrive Server.app', bundle_identifier='sh.prims.drive.server',
              info_plist={'CFBundleName':'PrimsDrive Server',
-                         'CFBundleShortVersionString':'0.1.0', 'CFBundleVersion':'1',
+                         'CFBundleShortVersionString':'0.1.1', 'CFBundleVersion':'2',
                          'LSUIElement':True,
                          'NSRemovableVolumesUsageDescription':'Serve your Prim library from the attached Sandisk drive to your authorized clients.'})
