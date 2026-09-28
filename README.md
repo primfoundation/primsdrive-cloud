@@ -15,6 +15,8 @@ Plan and implementation home for **[drive.prims.sh](https://drive.prims.sh)** �
 
 This repo is the **cloud service plan**. Mac File Provider app stays in [primfoundation/primsdrive](https://github.com/primfoundation/primsdrive). HostKey / paseo-prims may *build* here; they are not the data path.
 
+**Live handoff (start here):** [docs/HANDOFF.md](docs/HANDOFF.md).
+
 ## Architecture (target)
 
 ```
@@ -45,8 +47,8 @@ Web UI (first slice): pack browser, health (king_ack / mini status), optional ag
 
 ## Workstreams
 
-1. [#1 Cloudflare edge + DNS for drive.prims.sh](https://github.com/primfoundation/primsdrive-cloud/issues/1)
-2. [#2 mTLS tunnel Cloudflare → Mac mini](https://github.com/primfoundation/primsdrive-cloud/issues/2)
+1. [#1 Cloudflare edge + DNS for drive.prims.sh](https://github.com/primfoundation/primsdrive-cloud/issues/1) — **done (stub live)**
+2. [#2 mTLS tunnel Cloudflare → Mac mini](https://github.com/primfoundation/primsdrive-cloud/issues/2) — **next**
 3. [#3 Mini worker: serve Prim packs from Sandisk](https://github.com/primfoundation/primsdrive-cloud/issues/3)
 4. [#4 Agent API keys + /v1 pack CRUD](https://github.com/primfoundation/primsdrive-cloud/issues/4)
 5. [#5 /mcp endpoint for agents](https://github.com/primfoundation/primsdrive-cloud/issues/5)
@@ -57,7 +59,7 @@ Web UI (first slice): pack browser, health (king_ack / mini status), optional ag
 
 Worker `primsdrive-cloud` is the public front door stub. `GET /` and `GET /health` return the health JSON below. `GET`/`POST`/other methods on `/v1` and `/v1/*` return a `/v1/*` placeholder. `/mcp` returns an `/mcp` placeholder. Nothing in this Worker reads Sandisk or opens a tunnel.
 
-Deploy checks: [docs/deploy.md](docs/deploy.md). DNS is **not** applied from this repo: [docs/dns-handoff.md](docs/dns-handoff.md) is the EidosDNS / Prims registry handoff.
+Deploy checks: [docs/deploy.md](docs/deploy.md). DNS / hostname attachment history: [docs/dns-handoff.md](docs/dns-handoff.md). **Live continuation brief:** [docs/HANDOFF.md](docs/HANDOFF.md).
 
 `GET /health` (and `GET /`):
 
@@ -92,4 +94,4 @@ Placeholder body (`/v1/*` shown; `/mcp` uses `"route": "/mcp"`):
 
 ## Status
 
-**Worker stub is in the repo. `drive.prims.sh` DNS is not applied here** — EidosDNS handoff only. No tunnel and no Sandisk access.
+**Worker stub is live on Cloudflare.** `https://drive.prims.sh/health` returns the stub JSON above (proved 2026-09-27). Hostname is attached via Workers Domains on Worker `primsdrive-cloud` (Eidos AGI). No tunnel and no Sandisk access yet — next is issue #2. See [docs/HANDOFF.md](docs/HANDOFF.md).
