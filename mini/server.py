@@ -5,6 +5,7 @@ import hmac
 import json
 import os
 import re
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from store import MAX_BYTES, Store, StoreError, parts
@@ -126,8 +127,19 @@ def handler(store, secret):
     return Handler
 
 
-if __name__ == '__main__':
-    secret = Path(os.environ['PRIMSDRIVE_PROBE_SECRET_FILE']).read_text().strip()
+def main():
+    if sys.argv[1:] == ['--self-test']:
+        from selftest import run
+        run()
+        return
+    if sys.argv[1:]:
+        raise SystemExit('Only --self-test is supported; production root and port are fixed')
+    state = Path.home() / 'Library/Application Support/PrimsDriveCloud'
+    secret = Path(os.environ.get('PRIMSDRIVE_PROBE_SECRET_FILE', str(state / 'probe-secret'))).read_text().strip()
     server = ThreadingHTTPServer(('127.0.0.1', 18746), handler(Store(KING, VOLUME), secret))
     server.daemon_threads = True
     server.serve_forever()
+
+
+if __name__ == '__main__':
+    main()

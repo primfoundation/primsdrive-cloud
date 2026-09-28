@@ -15,8 +15,30 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('state')
-parser.add_argument('--pack-service', action='store_true', help='Enable only after macOS grants the service access to Sandisk')
+parser.add_argument('--pack-service', action='store_true', help='Retired: use --server-app with a verified company-signed bundle')
+parser.add_argument('--server-app', type=pathlib.Path, help='Installed, signed and notarized PrimsDrive Server.app')
 args = parser.parse_args()
+if args.pack_service:
+    parser.error('Raw Python production launch is retired; use --server-app')
+server_binary = None
+if args.server_app:
+    app = args.server_app.resolve()
+    expected = pathlib.Path.home() / 'Applications/PrimsDrive Server.app'
+    if app != expected:
+        parser.error(f'Install the validated release at {expected} first')
+    subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
+    info = subprocess.run(['codesign', '-dv', '--verbose=4', str(app)],
+                          capture_output=True, text=True, check=True).stderr
+    for value in ('Identifier=sh.prims.drive.server',
+                  'Authority=Developer ID Application: Eidos AGI LLC (Y6CQ4SWPWM)',
+                  'TeamIdentifier=Y6CQ4SWPWM', 'runtime', 'Timestamp='):
+        if value not in info:
+            parser.error('Release signature requirement missing: ' + value)
+    subprocess.run(['xcrun', 'stapler', 'validate', str(app)], check=True)
+    subprocess.run(['spctl', '--assess', '--type', 'execute', str(app)], check=True)
+    server_binary = app / 'Contents/MacOS/PrimsDriveServer'
+    if not server_binary.is_file():
+        parser.error('Missing packaged server executable')
 state = pathlib.Path(args.state).resolve()
 state.mkdir(mode=0o700, parents=True, exist_ok=True)
 state.chmod(0o700)
@@ -28,23 +50,26 @@ for name in ('probe-secret', 'tunnel-token'):
 node = shutil.which('node') or '/opt/homebrew/bin/node'
 cloudflared = shutil.which('cloudflared') or '/opt/homebrew/bin/cloudflared'
 shutil.copyfile(pathlib.Path(__file__).resolve().parent.parent / 'mini/hello.ts', state / 'hello.ts')
-if args.pack_service:
-    source = pathlib.Path(__file__).resolve().parent.parent / 'mini'
-    for filename in ('server.py', 'store.py'):
-        shutil.copyfile(source / filename, state / filename)
-hello_args = ['/usr/bin/python3', str(state / 'server.py')] if args.pack_service else [node, str(state / 'hello.ts')]
+hello_args = [str(server_binary)] if server_binary else [node, str(state / 'hello.ts')]
 agents = pathlib.Path.home() / 'Library/LaunchAgents'
 agents.mkdir(parents=True, exist_ok=True)
 jobs = {
     'sh.prims.drive.hello': (hello_args, {'PRIMSDRIVE_PROBE_SECRET_FILE': str(state / 'probe-secret')}),
     'sh.prims.drive.tunnel': ([cloudflared, 'tunnel', '--no-autoupdate', 'run', '--token-file', str(state / 'tunnel-token')], {}),
 }
+if server_binary:
+    del jobs['sh.prims.drive.tunnel']  # Retain the existing tunnel process and configuration.
 for label, (args, env) in jobs.items():
     path = agents / f'{label}.plist'
     doc = dict(Label=label, ProgramArguments=args, EnvironmentVariables=env,
                RunAtLoad=True, KeepAlive=True, ThrottleInterval=10,
                StandardOutPath=str(state / f'{label}.log'),
                StandardErrorPath=str(state / f'{label}.error.log'), WorkingDirectory=str(state))
+    if path.exists():
+        backup = path.with_suffix('.plist.before-server')
+        if backup.exists():
+            raise SystemExit(f'Preserve existing rollback backup before continuing: {backup}')
+        shutil.copy2(path, backup)
     path.write_bytes(plistlib.dumps(doc))
     path.chmod(0o600)
     domain = f'gui/{os.getuid()}'

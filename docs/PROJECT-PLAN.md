@@ -61,11 +61,21 @@ Both candidates remain undeployed; provider tests use fixtures.
    verified account/Access subject. Inventory of actual profile names is blocked
    by (1). Do not auto-grant the whole disk to anyone with a Prims account.
 
+## Signed Mini server correction — 2026-09-28
+
+Follow [MAC-SERVER.md](MAC-SERVER.md). The server must have its own stable
+company-signed application identity. Raw Fleet Python diagnostics are not server
+acceptance. `--pack-service` is retired; `--server-app` verifies the company
+signature, notarization ticket and Gatekeeper before replacing the hello job.
+Mini company signing identity and `eidos-notary` profile were absent on inspection.
+Existing signed Prims Desktop on port 7749 is a different product, not signing-key
+custody and not permission inheritance for this server.
+
 ## Ordered execution from here
 
-1. Resolve mini OS access using the intended service identity. Read only the
+1. Build/sign the dedicated server and resolve OS access for its installed identity. Read only the
    immediate Prims children and record the actual profile contract.
-2. Install the reviewed candidate using `scripts/install-mini.py STATE --pack-service`.
+2. Install the reviewed candidate using `scripts/install-mini.py STATE --server-app "$HOME/Applications/PrimsDrive Server.app"`.
    Reuse the existing probe secret, tunnel token, port, login-agent labels, and VPC
    service. No secrets in git or command arguments; never change the root.
 3. Bind the existing `prims-sso` Worker as `PRIMS_SSO`; set operator-owned

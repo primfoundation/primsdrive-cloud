@@ -1,3 +1,14 @@
+# Signed server continuation — 2026-09-28
+
+Read [MAC-SERVER.md](MAC-SERVER.md) first for the corrected server/client boundary,
+Mini build evidence, signing prerequisites and next action. PrimsDrive Server.app
+was built and its packaged HTTP fixture tests passed on the Mini at source
+83c75b36bd34b38078d91618f890a296ed2852f0. It is an ad-hoc candidate, not installed
+or notarized. Company Developer ID and notary credentials are absent on the Mini.
+Next: provision approved signing access, sign/notarize the same product, install
+its stable identity, approve its disk access through native UI, then test its API
+against Sandisk. Do not return to diagnosing unrelated Fleet Python permissions.
+
 # Project continuation — 2026-09-27 CT
 
 Daniel authorized completing the project and publishing changes. #2 is merged in PR #9 and live. Start from [PROJECT-PLAN.md](PROJECT-PLAN.md) for the full inventory, candidate code, actual blockers, and acceptance gates. #3–#7 are not complete or deployed. The original handoff follows for history.
@@ -5,9 +16,26 @@ Daniel authorized completing the project and publishing changes. #2 is merged in
 2026-09-28 UTC continuation: Drive PR #10 adds explicit verified OAuth issuer
 configuration and ChatGPT reauthorization metadata. The existing SSO's gated
 Connected Apps consent adapter is in `primfoundation/prims-sso#11`. Neither is
-deployed. Remote disk checks are attributed to the SSH process by macOS TCC;
-the pack LaunchAgent's access remains unverified. See the plan for receipts and
+deployed. Remote disk checks have been attributed to both the SSH wrapper and
+the long-lived Xcode Python process by macOS TCC; attribution depends on the
+execution path. The pack LaunchAgent's access remains unverified. See the plan for receipts and
 remaining Stytch configuration/introspection and real ChatGPT acceptance gates.
+
+2026-09-28 UTC robot practice: the existing Mini KVM relay at loopback port
+14006 can capture the desktop and deliver keyboard/mouse input through Fleet.
+System Settings navigation and screenshot changes confirmed actual control.
+The UI showed `sshd-keygen-wrapper` Full Disk Access already enabled, and one
+of several `python3` entries had Removable Volumes enabled. No permission switch
+was changed. The precise application behind that latter entry remains
+unverified; do not infer identity from its display name. A bounded read of
+`/Volumes/Sandisk2TB/Prims` through Fleet still returned `PermissionError 1`
+(receipt `5ddf97b6db6360af8b92e6fc5e0f23de85d0e2515bda88eb2555d0eec9a0f583`).
+The directory is owned by `dshanklin` with mode `drwxr-xr-x`; changing POSIX
+ownership/modes is not justified by this evidence. Robot operation is proven;
+Sandisk access and real pack-service access are not. Resolve the exact runtime's
+native macOS permission before claiming a fix. Do not bypass TCC or create a
+second data store. Fleet Robots inventory is tracked in `eidos-agi/fleet#13`;
+the page has not been built.
 
 # Handoff — drive.prims.sh live stub (2026-09-27)
 
