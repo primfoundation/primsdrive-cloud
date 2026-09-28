@@ -1,5 +1,6 @@
 import { ApiError, authenticate, boundedJson, operation, type AgentEnv } from './agent.ts';
 import { json } from './responses.ts';
+import { challenge } from './oauth-resource.ts';
 const VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26'];
 const properties = { profile: { type: 'string', description: 'Assigned top-level directory under the Sandisk Prims root.' },
   path: { type: 'string', description: 'Relative object or directory path within that profile.' },
@@ -62,6 +63,10 @@ export async function mcp(request: Request, env: AgentEnv): Promise<Response> {
     return ok({ content: [{ type: 'text', text: JSON.stringify(body) }], structuredContent: body, isError: !res.ok });
   } catch (e) {
     if (!(e instanceof ApiError)) throw e;
-    return ok({ content: [{ type: 'text', text: e.message }], isError: true });
+    const requiredScope = ['put','delete'].includes(definition[1]) ? 'primsdrive.write' : 'primsdrive.read';
+    return ok({ content: [{ type: 'text', text: e.message }], isError: true,
+      ...(env.MCP_OAUTH_ENABLED === 'true' && e.message === 'oauth_scope_denied'
+        ? { _meta: { 'mcp/www_authenticate': [`${challenge}, error="insufficient_scope", scope="${requiredScope}"`] } } : {}),
+    });
   }
 }

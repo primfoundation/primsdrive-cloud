@@ -27,6 +27,14 @@ The deployed Worker and mini retain the proven #2 hello implementation.
 
 ## Concrete blockers found
 
+Continuation 2026-09-28 UTC: Drive now requires explicit verified issuer
+configuration for discovery and returns ChatGPT's tool reauthorization metadata
+for insufficient OAuth scope. All 17 TS tests and 5 Python tests, typecheck and
+Worker dry-run pass. SSO consent adapter is in
+[prims-sso PR #11](https://github.com/primfoundation/prims-sso/pull/11), with
+26 Node tests plus account-store tests, typecheck and dry-run passing locally.
+Both candidates remain undeployed; provider tests use fixtures.
+
 1. Fleet runs as `dshanklin` on `Daniels-Mac-mini.local`. A bounded read found
    `/Volumes/Sandisk2TB` mounted and the `Prims` root present, then `os.listdir`
    returned `PermissionError: [Errno 1] Operation not permitted`. Receipt:
@@ -37,6 +45,12 @@ The deployed Worker and mini retain the proven #2 hello implementation.
    access through macOS's supported permission UI. Exact responsible process
    attribution must be checked in macOS; do not assume a Python/Node permission
    automatically grants Fleet or vice versa. Until then no real canary is claimed.
+   Follow-up metadata confirms `dshanklin` owns both directories with ordinary
+   owner read/execute bits (receipt `00d15c67ad2d52ee50527171362387a8862c21db165c865f00b15094b4f85c5a`).
+   TCC logs attribute Python accesses to `com.apple.sshd-keygen-wrapper` and
+   `/usr/libexec/sshd-session` (receipt `da818366f12772659994583d3b6af66bdadb7eba5b869a3316c3f0e01d4d0635`).
+   This supports privacy-permission attribution for the remote check, not a
+   claim that the intended LaunchAgent has been tested or granted disk access.
 2. `primfoundation/prims-sso` has passkey sessions, agent tokens and policy APIs,
    but its #2 OIDC provider and #3 Drive integration remain open. Login cookies
    are host-only on `login.prims.sh`; copying them across hosts is not SSO.

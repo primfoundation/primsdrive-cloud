@@ -2,6 +2,13 @@
 
 Daniel authorized completing the project and publishing changes. #2 is merged in PR #9 and live. Start from [PROJECT-PLAN.md](PROJECT-PLAN.md) for the full inventory, candidate code, actual blockers, and acceptance gates. #3–#7 are not complete or deployed. The original handoff follows for history.
 
+2026-09-28 UTC continuation: Drive PR #10 adds explicit verified OAuth issuer
+configuration and ChatGPT reauthorization metadata. The existing SSO's gated
+Connected Apps consent adapter is in `primfoundation/prims-sso#11`. Neither is
+deployed. Remote disk checks are attributed to the SSH process by macOS TCC;
+the pack LaunchAgent's access remains unverified. See the plan for receipts and
+remaining Stytch configuration/introspection and real ChatGPT acceptance gates.
+
 # Handoff — drive.prims.sh live stub (2026-09-27)
 
 **Issue #2 continuation (2026-09-27 CT):** Private Tunnel + VPC hello is now installed. See [mini-tunnel.md](mini-tunnel.md) for resources, security model, verification and rollback. Health now checks the mini live; `tunnel` can be true while `sandisk` remains false. The original stub handoff below is retained as historical context. Next implementation slice is #3.

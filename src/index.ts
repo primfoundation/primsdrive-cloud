@@ -30,7 +30,7 @@ export function handleRequest(request: Request): Response {
 export default {
   async fetch(request: Request, env: HumanEnv = {}): Promise<Response> {
     if (new URL(request.url).pathname === '/.well-known/oauth-protected-resource') {
-      return request.method === 'GET' ? resourceMetadata(env.MCP_OAUTH_ENABLED === 'true') : methodNotAllowed();
+      return request.method === 'GET' ? resourceMetadata(env.MCP_OAUTH_ENABLED === 'true', env.MCP_OAUTH_ISSUER) : methodNotAllowed();
     }
     if (classify(new URL(request.url).pathname) === 'health' && request.method === 'GET' && !(new URL(request.url).pathname === '/' && env.ACCESS_ISSUER && env.ACCESS_AUD)) {
       const reachability = await miniStatus(env);

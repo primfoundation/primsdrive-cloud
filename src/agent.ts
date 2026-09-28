@@ -7,6 +7,7 @@ export interface AgentEnv extends TunnelEnv {
   // Assigned by the Drive operator, never by a self-registered account or agent.
   DRIVE_ACCOUNT_PROFILES?: string;
   MCP_OAUTH_ENABLED?: string;
+  MCP_OAUTH_ISSUER?: string;
 }
 export interface Identity { agent_id: string; account_id: string; profiles: string[]; oauthScopes?: string[] }
 export class ApiError extends Error {

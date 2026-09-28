@@ -89,11 +89,23 @@ it('ChatGPT OAuth discovery stays gated until provider ready; audience and scope
   const {env}=setup();
   const metadata=new Request('https://drive.prims.sh/.well-known/oauth-protected-resource');
   assert.equal((await worker.fetch(metadata,env)).status,503);
-  const enabled={...env,MCP_OAUTH_ENABLED:'true'};
+  assert.equal((await worker.fetch(metadata,{...env,MCP_OAUTH_ENABLED:'true'})).status,503);
+  const enabled={...env,MCP_OAUTH_ENABLED:'true',MCP_OAUTH_ISSUER:'https://verified-issuer.example'};
   const discovery=await (await worker.fetch(metadata,enabled)).json() as any;
   assert.equal(discovery.resource,'https://drive.prims.sh');
-  assert.deepEqual(discovery.authorization_servers,['https://login.prims.sh']);
+  assert.deepEqual(discovery.authorization_servers,['https://verified-issuer.example']);
+  assert.equal((await worker.fetch(metadata,{...enabled,MCP_OAUTH_ISSUER:'https://issuer.example/#bad'})).status,503);
   const r=await worker.fetch(request('/mcp','POST',{jsonrpc:'2.0',id:1,method:'tools/list'},{accept:'application/json, text/event-stream'}),enabled);
   assert.equal(r.status,401); // Legacy token lacks a Drive resource audience.
   assert.ok(r.headers.get('www-authenticate')?.includes('oauth-protected-resource'));
+});
+
+it('MCP insufficient OAuth scope returns the ChatGPT reauthorization signal without touching the king',async()=>{
+  const {env,state}=setup();
+  const enabled={...env,MCP_OAUTH_ENABLED:'true',PRIMS_SSO:{fetch:async()=>Response.json({active:true,account_id:'owner',agent_id:'agent',resource:'https://drive.prims.sh',scope:'primsdrive.read'})}};
+  const r=await worker.fetch(request('/mcp','POST',{jsonrpc:'2.0',id:1,method:'tools/call',params:{name:'pack_write',arguments:{profile:'canary',path:'a',content_base64:'aGk=',create:true}}},{accept:'application/json, text/event-stream'}),enabled);
+  const b=await r.json() as any;
+  assert.equal(b.result.isError,true);
+  assert.match(b.result._meta['mcp/www_authenticate'][0],/insufficient_scope.*primsdrive.write/);
+  assert.equal(state.miniCalls,0);
 });

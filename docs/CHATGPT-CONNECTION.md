@@ -18,26 +18,36 @@ with S256 PKCE, protected-resource discovery, authorization-server metadata, and
 tokens bound to the resource and scopes. A manually minted `agt_...` bearer can
 serve non-ChatGPT agent clients but does **not** satisfy ChatGPT connection setup.
 The current Prims SSO issuer has agent-token APIs but no completed OAuth provider.
+SSO PR [#11](https://github.com/primfoundation/prims-sso/pull/11) now supplies a
+tested, disabled-by-default passkey continuation and Connected Apps consent
+adapter. It is not deployed and does not yet supply OAuth token introspection.
 Plugin directory lookup returned no existing PrimsDrive plugin to install.
 
 This elevates prims-sso#2 from a browser-only dependency to a **ChatGPT/MCP release
-blocker**. Keep one issuer at `login.prims.sh`; do not solve it with public/no-auth
+blocker**. Keep the existing Prims/Stytch identity plane; do not solve it with public/no-auth
 MCP, hard-coded credentials, or a second OAuth database in Drive.
 
 ## Resource-server candidate
 
 - `/.well-known/oauth-protected-resource`: resource `https://drive.prims.sh`,
-  issuer `https://login.prims.sh`, scopes `primsdrive.read`, `primsdrive.write`.
-- Discovery returns 503 until `MCP_OAUTH_ENABLED=true`, which must remain unset
+  issuer from `MCP_OAUTH_ISSUER`, scopes `primsdrive.read`, `primsdrive.write`.
+  Configure the issuer only from the existing Stytch project's verified metadata.
+  `login.prims.sh` is the login facade; do not assume it is the signed token issuer.
+- Discovery returns 503 until `MCP_OAUTH_ENABLED=true` and a valid HTTPS issuer
+  are configured. The enable flag must remain unset
   until the actual provider contract is deployed and tested.
 - In OAuth mode, `/mcp` additionally requires introspection to report exact
   `resource=https://drive.prims.sh` and an appropriate space-delimited `scope`.
   Existing account-profile and live SSO policy restrictions still apply.
 - Invalid/missing authentication gets a 401 `WWW-Authenticate` challenge pointing
   to resource metadata. Tool descriptors declare required OAuth scopes.
+- Insufficient OAuth scope in a tool result returns `_meta.mcp/www_authenticate`
+  with the required scope so ChatGPT can request reauthorization.
 - Existing opaque `agt_...` token storage can remain at SSO, but OAuth issuance
   must bind tokens to the grant, client, resource, scopes, and user-approved agent.
   Existing unbound manual tokens are rejected by OAuth-mode MCP.
+  Stytch Connected Apps emits its own OAuth tokens: the current `agt_`-only
+  validator is a candidate contract, not an implemented Stytch JWT integration.
 
 ## Upstream SSO work and gates
 
