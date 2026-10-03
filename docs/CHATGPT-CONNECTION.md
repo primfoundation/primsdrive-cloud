@@ -18,9 +18,11 @@ with S256 PKCE, protected-resource discovery, authorization-server metadata, and
 tokens bound to the resource and scopes. A manually minted `agt_...` bearer can
 serve non-ChatGPT agent clients but does **not** satisfy ChatGPT connection setup.
 The current Prims SSO issuer has agent-token APIs but no completed OAuth provider.
-SSO PR [#11](https://github.com/primfoundation/prims-sso/pull/11) now supplies a
-tested, disabled-by-default passkey continuation and Connected Apps consent
-adapter. It is not deployed and does not yet been activated for OAuth token introspection.
+[prims-sso#12](https://github.com/primfoundation/prims-sso/pull/12) is merged as
+`938c98f0fdc26d43d96f9def2499413f91a6b61f`. It carries the #11 consent adapter and
+maps ChatGPT and Grok onto existing Prims accounts. It is not deployed.
+`CONNECTED_APPS_ENABLED` is unset. `login.prims.sh` answers authorization-server
+discovery with `503` `issuer_not_hosted_here` and does not publish an issuer.
 Plugin directory lookup returned no existing PrimsDrive plugin to install.
 
 This elevates prims-sso#2 from a browser-only dependency to a **ChatGPT/MCP release
@@ -29,13 +31,15 @@ MCP, hard-coded credentials, or a second OAuth database in Drive.
 
 ## Resource-server candidate
 
-- `/.well-known/oauth-protected-resource`: resource `https://drive.prims.sh`,
-  issuer from `MCP_OAUTH_ISSUER`, scopes `primsdrive.read`, `primsdrive.write`.
-  Configure the issuer only from the existing Stytch project's verified metadata.
-  `login.prims.sh` is the login facade; do not assume it is the signed token issuer.
-- Discovery returns 503 until `MCP_OAUTH_ENABLED=true` and a valid HTTPS issuer
-  are configured. The enable flag must remain unset
-  until the actual provider contract is deployed and tested.
+- `/.well-known/oauth-protected-resource` and
+  `/.well-known/oauth-protected-resource/mcp` (MCP clients probe the path form
+  first): resource `https://drive.prims.sh`, issuer from `MCP_OAUTH_ISSUER`,
+  scopes `primsdrive.read` and `primsdrive.write`. The issuer string is the
+  HTTPS `issuer` from the existing Stytch project's custom-domain metadata.
+  `login.prims.sh` is the consent façade, not that issuer.
+- Discovery returns 503 until `MCP_OAUTH_ENABLED=true` and that verified issuer
+  are both configured. Leave the flag unset. `938c98f0` being merged does not
+  make the issuer live.
 - In OAuth mode, `/mcp` additionally requires introspection to report exact
   `resource=https://drive.prims.sh` and an appropriate space-delimited `scope`.
   Existing account-profile and live SSO policy restrictions still apply.
@@ -104,3 +108,68 @@ The cloud Stytch dashboard is at sign-in. These are access/configuration gates,
 not disk permission failures. Actual ChatGPT installation and live OAuth
 refresh/revocation remain unverified. Keep activation flags disabled until the
 existing Stytch project is configured and Daniel signs in with his real identity.
+
+## Next deploy — OAuth `/mcp` stays off
+
+Do not set `MCP_OAUTH_ENABLED` or `MCP_OAUTH_ISSUER` in this deploy. Merged
+prims-sso `938c98f0` is the consent and introspection façade, and it is not
+deployed either. ChatGPT is not an installed connection. Follow
+`docs/CONNECTED-APPS.md` in prims-sso at that commit. Drive does not mint an issuer.
+
+Deploy this Worker with the existing Cloudflare MCP plane on Eidos AGI account
+`3c1d42c77978e6af0e458b6f1130c01b`. Preserve hostname `drive.prims.sh`, VPC
+binding `MINI_HELLO` (`01a0e621-4249-7040-9f18-5a3cc637c652`), secret
+`MINI_PROBE_SECRET`, and service binding `PRIMS_SSO` → `prims-sso`. Do not add
+`[[routes]]`, another tunnel, or a DNS change. Do not rotate the probe secret.
+`wrangler deploy` publishes the script only.
+
+What that deploy changes while OAuth is off:
+
+1. `GET /health` gains `probe` and still reports `tunnel` from the 3s hello.
+2. `GET` and `POST /mcp`, and `/v1/*`, return `401` `agent_bearer_required`
+   with no `WWW-Authenticate` header. Anonymous MCP is closed. The live
+   placeholder `/mcp` goes away in this deploy; it does not become a public tool
+   surface.
+3. `GET /.well-known/oauth-protected-resource` and
+   `GET /.well-known/oauth-protected-resource/mcp` return `503`
+   `oauth_provider_not_ready`. Clients that connect to `/mcp` try the path
+   well-known URI first, then the root. Both serve the same document only after
+   the flag and a verified HTTPS issuer are set together.
+4. Bearer `agt_` calls still need live SSO introspection plus an operator
+   `DRIVE_ACCOUNT_PROFILES` grant. Leave that grant empty until the account is
+   a real Prims account. Fixture SSO accounts must not receive Sandisk profiles.
+
+Enable OAuth mode only after the prims-sso checklist at `938c98f0` has been
+executed against the existing Stytch project. In order:
+
+1. Deploy the merged SSO façade with `CONNECTED_APPS_ENABLED` still unset.
+   `GET https://login.prims.sh/health` has been reporting Stytch `test`. Record
+   the project actually in use. `login.prims.sh` must keep answering
+   `/.well-known/oauth-authorization-server` with `issuer_not_hosted_here`.
+2. On that Stytch project, set the authorization URL to
+   `https://login.prims.sh/oauth/authorize`, scopes `primsdrive.read`,
+   `primsdrive.write`, and `offline_access` (refresh lives on Stytch). Give it
+   an HTTPS custom domain that is neither `login.prims.sh` nor `drive.prims.sh`.
+3. Fetch `https://{that-domain}/.well-known/oauth-authorization-server`. Copy
+   `issuer` (this becomes `OAUTH_ISSUER` and Drive `MCP_OAUTH_ISSUER`), and
+   confirm S256, authorization-code, refresh-token, and
+   `authorization_endpoint` `https://login.prims.sh/oauth/authorize`. The legacy
+   `stytch.com/{project_id}` issuer is not an HTTPS URL ChatGPT will accept.
+4. Register the real ChatGPT client metadata URL and redirect from the ChatGPT
+   connection screen for `https://drive.prims.sh/mcp`. Repeat from Grok's own
+   screen. Audience for access tokens must include `https://drive.prims.sh`.
+   Drive rejects a project-only audience.
+5. After a real passkey sign-in, bind one existing agent per client in
+   `OAUTH_AGENT_BINDINGS`. Confirm deployed `POST /v1/oauth/introspect` returns
+   `active`, `agent_id`, `account_id`, `resource` `https://drive.prims.sh`, and
+   `scope`, and returns `401` after revocation.
+6. Set Drive `MCP_OAUTH_ISSUER` to that same issuer and `MCP_OAUTH_ENABLED=true`
+   together. Unauthenticated `POST /mcp` then returns `401` with
+   `WWW-Authenticate: Bearer resource_metadata="https://drive.prims.sh/.well-known/oauth-protected-resource", scope="primsdrive.read primsdrive.write"`.
+7. Run the ChatGPT acceptance list in this document, including canary cleanup on
+   `/Volumes/Sandisk2TB/Prims`. Until that list has receipts, the endpoint is a
+   gated candidate for both ChatGPT and Grok Bot at `https://drive.prims.sh/mcp`.
+
+Grok Bot can use the bearer `agt_` surface once a real profile grant exists.
+OAuth for Grok uses the same resource server and a separate Connected App
+binding from the SSO checklist. Neither path is anonymous.

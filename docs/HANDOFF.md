@@ -1,3 +1,13 @@
+# Current handoff — 2026-10-03
+
+`tunnel:false` was a LaunchAgent TCC wedge, not a Worker header or probe-secret mismatch. PrimsDrive Server.app under `sh.prims.drive.hello` blocked forever in `openat` on `/Volumes/Sandisk2TB` inside `/hello` → `Store.directory()`. The Worker aborted that fetch at 3 seconds and reported `tunnel:false` / `sandisk:false`. The same binary, reached through `sshd`, returned `sandisk:true` in about 20ms.
+
+Ops already changed the mini: `sh.prims.drive.hello` starts the server through `ssh -o BatchMode=yes` to `127.0.0.1`, so the open runs in the sshd context that can read the volume. Public health is storage-ready again (`tunnel:true`, `sandisk:true`, well under a second, checked 2026-10-03). Leave that job in place. Do not redo DNS. Do not rotate `MINI_PROBE_SECRET`. Do not create another tunnel or king.
+
+`sandisk_probe` in `mini/server.py` is the server-side bound (1 second) so a future direct LaunchAgent exec of the binary cannot pin `/hello`. A stuck `openat` is not cancellable; the HTTP response still returns, `sandisk` stays false while that open is in flight, and a second hello does not start another open. The installed 0.1.2 binary does not contain this bound. Ship it only through the existing company-signed path in [MAC-SERVER.md](MAC-SERVER.md). Until that build is installed, keep the ssh wrapper.
+
+Live Worker remains health-only `a4b6a971-0ab5-44af-8744-493e4ccffb8b`. Its `/mcp` is still the public placeholder. This candidate gates `/v1` and `/mcp` (401 with no bearer) and keeps `MCP_OAUTH_ENABLED` unset. Issuer work is prims-sso #12, merged as `938c98f0`, and is not deployed. ChatGPT is not installed. Next steps: [CHATGPT-CONNECTION.md](CHATGPT-CONNECTION.md).
+
 # Current handoff — 2026-09-28
 
 OAuth continuation: candidate Drive now accepts provider-form MCP credentials

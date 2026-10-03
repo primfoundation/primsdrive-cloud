@@ -1,3 +1,17 @@
+# LaunchAgent openat wedge — 2026-10-03
+
+Direct `sh.prims.drive.hello` execution of PrimsDrive Server.app hung in
+`openat("/Volumes/Sandisk2TB")` inside `/hello` → `Store.directory()`. Public
+health then followed the Worker 3s abort to `tunnel:false`. The same binary
+through `sshd` returned `sandisk:true` in about 20ms. The live job now wraps
+the server with `ssh -o BatchMode=yes` to `127.0.0.1`, and public health is
+storage-ready again. Keep that wrapper, the existing probe secret, and DNS.
+
+`mini/server.py` `sandisk_probe` bounds that volume open at 1 second so a later
+direct LaunchAgent exec can answer `/hello` even when `openat` never returns
+(`sandisk:false`, tunnel proof intact). Install that behavior only as a new
+company-signed build. The installed 0.1.2 binary does not have the bound.
+
 # Cloud health accepted — 2026-09-28
 
 Health-only PR #11 is merged (`5ac1874f25e787998c5ecacba129fe7a5bde79b4`) and deployed

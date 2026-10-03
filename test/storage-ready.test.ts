@@ -15,6 +15,7 @@ test('storage readiness preserves authenticated tunnel health in both states', a
     const body = await response.json();
     assert.equal(body.tunnel, true);
     assert.equal(body.sandisk, sandisk);
+    assert.equal(body.probe, 'ok');
     assert.equal(body.status, sandisk ? 'storage-ready' : 'stub');
   }
 });

@@ -57,11 +57,11 @@ Web UI (first slice): pack browser, health (king_ack / mini status), optional ag
 
 ## Edge stub ([#1](https://github.com/primfoundation/primsdrive-cloud/issues/1))
 
-Worker `primsdrive-cloud` is the public front door stub. `GET /` and `GET /health` return the health JSON below. `GET`/`POST`/other methods on `/v1` and `/v1/*` return a `/v1/*` placeholder. `/mcp` returns an `/mcp` placeholder. The Worker probes a private hello endpoint through its VPC service binding; it does not read Sandisk. `tunnel` reflects the current probe result.
+Worker `primsdrive-cloud` is the public front door. `GET /` and `GET /health` return the health JSON below, including the private hello `probe` code. `/v1/*` and `/mcp` require an agent bearer and answer `401` with no token. There is no public unauthenticated MCP. OAuth discovery stays `503` until the gates in [docs/CHATGPT-CONNECTION.md](docs/CHATGPT-CONNECTION.md) are met. The Worker probes a private hello endpoint through its VPC service binding; it does not read Sandisk. `tunnel` is true only when that hello returns the expected proof inside 3 seconds.
 
 Deploy checks: [docs/deploy.md](docs/deploy.md). DNS / hostname attachment history: [docs/dns-handoff.md](docs/dns-handoff.md). **Live continuation brief:** [docs/HANDOFF.md](docs/HANDOFF.md).
 
-`GET /health` (and `GET /`):
+`GET /health` (and `GET /`) on this candidate. The sample below is a timed-out probe. A hello that matches sets `probe` to `ok` and `tunnel` to true; `status` is `storage-ready` when `sandisk` is true. The deployed health-only worker does not include `probe` yet.
 
 ```json
 {
@@ -71,27 +71,18 @@ Deploy checks: [docs/deploy.md](docs/deploy.md). DNS / hostname attachment histo
   "host": "drive.prims.sh",
   "sandisk": false,
   "tunnel": false,
+  "probe": "timeout",
   "routes": {
     "/": "health",
     "/health": "health",
-    "/v1/*": "placeholder",
-    "/mcp": "placeholder"
+    "/v1/*": "agent-api",
+    "/mcp": "mcp"
   }
 }
 ```
 
-Placeholder body (`/v1/*` shown; `/mcp` uses `"route": "/mcp"`):
-
-```json
-{
-  "ok": true,
-  "service": "primsdrive-cloud",
-  "status": "placeholder",
-  "route": "/v1/*",
-  "implemented": false
-}
-```
+`probe` is `ok` when hello matches, and otherwise one of `unconfigured`, `timeout`, `unauthorized`, `rejected`, `redirect`, `bad_response`, or `unreachable`. It carries no secret, nonce, or upstream body.
 
 ## Status
 
-**Worker stub is live on Cloudflare.** `https://drive.prims.sh/health` returns the stub JSON above (proved 2026-09-27). Hostname is attached via Workers Domains on Worker `primsdrive-cloud` (Eidos AGI). Private Tunnel + VPC hello is installed; `tunnel` now reflects actual reachability. No Sandisk access yet — next is issue #3. See [mini-tunnel.md](docs/mini-tunnel.md). See [docs/HANDOFF.md](docs/HANDOFF.md).
+**Live health is storage-ready again.** Worker `a4b6a971-0ab5-44af-8744-493e4ccffb8b` still serves it. On 2026-10-03 the public document returned `tunnel:true`, `sandisk:true`, `status:storage-ready` in a few hundred milliseconds after the mini hello job was pointed through local `ssh -o BatchMode=yes`. The earlier `tunnel:false` was PrimsDrive Server.app blocking in `openat` on `/Volumes/Sandisk2TB` when LaunchAgent ran it directly. `/mcp` on that deployment is still the public placeholder. This branch gates `/mcp` and does not enable OAuth. ChatGPT is not installed. See [docs/mini-tunnel.md](docs/mini-tunnel.md), [docs/HANDOFF.md](docs/HANDOFF.md), and [docs/CHATGPT-CONNECTION.md](docs/CHATGPT-CONNECTION.md).

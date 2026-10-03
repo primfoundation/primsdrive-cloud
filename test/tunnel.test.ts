@@ -4,7 +4,7 @@ import { once } from 'node:events';
 import type { AddressInfo } from 'node:net';
 import { helloServer } from '../mini/hello.ts';
 import worker from '../src/index.ts';
-import { probeMini } from '../src/tunnel.ts';
+import { miniStatus, probeMini } from '../src/tunnel.ts';
 
 const secret = 'a'.repeat(64);
 it('private probe authenticates, rejects bypasses, and leaves Sandisk false', async () => {
@@ -47,4 +47,22 @@ it('fails closed for missing configuration, offline tunnel, redirects, stale and
     assert.equal(await probeMini({ MINI_PROBE_SECRET: secret, MINI_HELLO: { fetch: async () => response } }), false);
   }
   assert.equal(await probeMini({ MINI_PROBE_SECRET: secret, MINI_HELLO: { fetch: async () => { throw new Error('offline'); } } }), false);
+});
+
+it('names the probe failure so a hang is not reported as a credential or header miss', async () => {
+  const env = { MINI_PROBE_SECRET: secret, MINI_HELLO: { fetch: async () => new Response('no', { status: 401 }) } };
+  assert.equal((await miniStatus(env)).probe, 'unauthorized');
+  assert.equal((await miniStatus({ ...env, MINI_HELLO: { fetch: async () => new Response('no', { status: 400 }) } })).probe, 'rejected');
+  assert.equal((await miniStatus({})).probe, 'unconfigured');
+  const started = Date.now();
+  const hung = await miniStatus({
+    MINI_PROBE_SECRET: secret,
+    MINI_HELLO: { fetch: (request: Request) => new Promise<Response>((_resolve, reject) => {
+      request.signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')), { once: true });
+    }) },
+  }, 40);
+  assert.equal(hung.probe, 'timeout');
+  assert.equal(hung.tunnel, false);
+  assert.equal(hung.sandisk, false);
+  assert.ok(Date.now() - started < 500);
 });

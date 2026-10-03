@@ -3,7 +3,7 @@ import { miniStatus } from './tunnel.ts';
 import { api, ApiError } from './agent.ts';
 import { mcp } from './mcp.ts';
 import { human, type HumanEnv } from './human.ts';
-import { resourceMetadata, challenge } from './oauth-resource.ts';
+import { resourceMetadata, discoveryChallenge, metadataPath } from './oauth-resource.ts';
 
 export type RouteKind = "health" | "v1" | "mcp" | "miss";
 
@@ -29,7 +29,7 @@ export function handleRequest(request: Request): Response {
 
 export default {
   async fetch(request: Request, env: HumanEnv = {}): Promise<Response> {
-    if (new URL(request.url).pathname === '/.well-known/oauth-protected-resource') {
+    if (metadataPath(new URL(request.url).pathname)) {
       return request.method === 'GET' ? resourceMetadata(env.MCP_OAUTH_ENABLED === 'true', env.MCP_OAUTH_ISSUER) : methodNotAllowed();
     }
     if (classify(new URL(request.url).pathname) === 'health' && request.method === 'GET' && !(new URL(request.url).pathname === '/' && env.ACCESS_ISSUER && env.ACCESS_AUD)) {
@@ -46,7 +46,7 @@ export default {
       const status = e instanceof ApiError ? e.status : 503;
       return json({ error: e instanceof ApiError ? e.message : 'service_unavailable' }, status,
         status === 401 && new URL(request.url).pathname === '/mcp' && env.MCP_OAUTH_ENABLED === 'true'
-          ? { 'www-authenticate': challenge } : undefined);
+          ? { 'www-authenticate': discoveryChallenge } : undefined);
     }
   },
 };

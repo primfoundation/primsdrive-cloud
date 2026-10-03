@@ -6,6 +6,7 @@ import json
 import os
 import re
 import sys
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from store import MAX_BYTES, Store, StoreError, parts
@@ -13,11 +14,42 @@ from store import MAX_BYTES, Store, StoreError, parts
 KING = '/Volumes/Sandisk2TB/Prims'
 PROFILE_ROOT = KING + '/profiles'
 VOLUME = '/Volumes/Sandisk2TB'
+# Direct LaunchAgent exec hung forever in openat(/Volumes/Sandisk2TB) inside
+# Store.directory() during /hello (2026-10-03). The same binary under sshd
+# returned in ~20ms. openat cannot be cancelled; this waiter lets /hello return
+# inside the Worker's 3s probe. sandisk stays false while that open is stuck.
+DISK_BUDGET = 1.0
 
 
-def handler(store, secret):
+def sandisk_probe(store, budget, gate):
+    with gate['lock']:
+        if gate['inflight']:
+            return False
+        gate['inflight'] = True
+    state = {'ok': False}
+    done = threading.Event()
+
+    def run():
+        try:
+            store.health()
+            state['ok'] = True
+        except (OSError, StoreError):
+            state['ok'] = False
+        finally:
+            done.set()
+            with gate['lock']:
+                gate['inflight'] = False
+
+    threading.Thread(target=run, daemon=True).start()
+    if not done.wait(budget):
+        return False
+    return state['ok']
+
+
+def handler(store, secret, disk_budget=DISK_BUDGET):
     if len(secret) != 64 or any(c not in '0123456789abcdef' for c in secret):
         raise ValueError('Invalid probe secret')
+    gate = {'lock': threading.Lock(), 'inflight': False}
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_):
@@ -43,11 +75,7 @@ def handler(store, secret):
                 nonce = self.headers.get('X-Probe-Nonce', '')
                 if len(nonce) != 36 or any(c not in '0123456789abcdef-' for c in nonce):
                     return self.reply(400, dict(error='invalid_nonce'))
-                try:
-                    store.health()
-                    accessible = True
-                except (OSError, StoreError):
-                    accessible = False
+                accessible = sandisk_probe(store, disk_budget, gate)
                 return self.reply(200, dict(ok=True, service='primsdrive-mini-hello', nonce=nonce, sandisk=accessible))
             if self.path != '/rpc':
                 return self.reply(404, dict(error='not_found'))
