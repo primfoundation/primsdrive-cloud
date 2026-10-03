@@ -1,3 +1,9 @@
+## 2026-10-03T21:45:00Z Tests
+
+- **What changed:** `npm run verify` after the hello budget and OAuth discovery changes.
+- **Why:** Confirm the wedged-disk hello, probe classification, gated `/mcp`, and Wrangler bundle before opening the PR.
+- **Supporting Research:** Typecheck passed. Node tests 20 passed. Python mini tests 10 passed. Installer tests 2 passed. `wrangler deploy --dry-run` (4.142.0) uploaded 24.85 KiB with `MINI_HELLO` and `PRIMS_SSO` only. No `MCP_OAUTH_ENABLED` binding.
+
 ## 2026-09-27T23:55:00Z Tests
 
 - **What changed:** `npm test` (4 contract tests) and `npx wrangler deploy --dry-run` (wrangler 4.142.0).

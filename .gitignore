@@ -5,3 +5,8 @@ node_modules/
 dist/
 *.log
 .DS_Store
+
+__pycache__/
+*.pyc
+
+.venv-mac/

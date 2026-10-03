@@ -1,0 +1,134 @@
+# PrimsDrive cloud — completion plan and release gates
+
+Updated 2026-09-27 CT after Daniel explicitly authorized publishing and completing
+this project. Continue the canonical issue sequence; do not rebuild DNS, move the
+king, or create a second identity issuer. PR #9 merged as
+`e32feb2557a51e0e4e0d20f07728551a1b1d9ab1` closes #2.
+
+## Inventory and current truth
+
+| Issue | Implementation state | Required live acceptance |
+| --- | --- | --- |
+| #1 | Existing edge/domain live | Already proved; leave DNS alone |
+| #2 | Health fix PR #11 merged/deployed; tunnel and storage true | Public outage/recovery verified |
+| #3 | Signed/notarized dedicated server 0.1.2 installed on Mini | Real eidos-agi CRUD, cleanup, upgrades and rollback passed; edge acceptance remains |
+| #4 | Candidate SSO-backed scoped REST API | Real agent issue/rotate/revoke; immediate revoked-token rejection through edge |
+| #5 | Candidate stateless Streamable HTTP MCP | Real ChatGPT plugin OAuth connection and tool canary round-trip |
+| #6 | Candidate Access JWT verifier; upstream provider unfinished | Prims SSO OIDC → Access → Drive redirect/sign-in/logout/expiry proof |
+| #7 | Candidate authenticated, read-only folder browser | Real signed-in human browses actual king profiles and mount health |
+
+The candidate branch is **not a production-complete release**. #3–#7 stay open.
+Local validation passes but does not substitute for the live acceptance above.
+
+**Direct ChatGPT connection is a required deliverable.** See
+[CHATGPT-CONNECTION.md](CHATGPT-CONNECTION.md). Its OAuth provider work is ahead
+of web UI polish; generic bearer MCP tests alone do not close #5.
+The Mini now runs PrimsDrive Server 0.1.2. The deployed Worker still runs the
+health-only update from PR #11; tunnel and Sandisk readiness are live.
+
+## Historical blockers (native disk blocker resolved below)
+
+Continuation 2026-09-28 UTC: Drive now requires explicit verified issuer
+configuration for discovery and returns ChatGPT's tool reauthorization metadata
+for insufficient OAuth scope. All 17 TS tests and 5 Python tests, typecheck and
+Worker dry-run pass. SSO consent adapter is in
+[prims-sso PR #11](https://github.com/primfoundation/prims-sso/pull/11), with
+26 Node tests plus account-store tests, typecheck and dry-run passing locally.
+Both candidates remain undeployed; provider tests use fixtures.
+
+1. Fleet runs as `dshanklin` on `Daniels-Mac-mini.local`. A bounded read found
+   `/Volumes/Sandisk2TB` mounted and the `Prims` root present, then `os.listdir`
+   returned `PermissionError: [Errno 1] Operation not permitted`. Receipt:
+   `5fefd90fc21be33398751a22ea0a66f1cd94cb08bb8d3ddf36719b558ed21172`.
+   This is an OS access denial, not an unmounted volume. Do not bypass it with
+   another account, privileged process, broad chmod, copied data, or TCC edits.
+   An administrator must authorize the intended mini service's removable-volume
+   access through macOS's supported permission UI. Exact responsible process
+   attribution must be checked in macOS; do not assume a Python/Node permission
+   automatically grants Fleet or vice versa. Until then no real canary is claimed.
+   Follow-up metadata confirms `dshanklin` owns both directories with ordinary
+   owner read/execute bits (receipt `00d15c67ad2d52ee50527171362387a8862c21db165c865f00b15094b4f85c5a`).
+   TCC logs attribute Python accesses to `com.apple.sshd-keygen-wrapper` and
+   `/usr/libexec/sshd-session` (receipt `da818366f12772659994583d3b6af66bdadb7eba5b869a3316c3f0e01d4d0635`).
+   This supports privacy-permission attribution for the remote check, not a
+   claim that the intended LaunchAgent has been tested or granted disk access.
+2. `primfoundation/prims-sso` has passkey sessions, agent tokens and policy APIs,
+   but its #2 OIDC provider and #3 Drive integration remain open. Login cookies
+   are host-only on `login.prims.sh`; copying them across hosts is not SSO.
+   Read-only Cloudflare inventory found **zero Access apps** and no Prims OIDC
+   provider (only the built-in cloudflare identity provider). The candidate verifier
+   fails closed without an actual issuer and audience; no fake session is minted.
+3. Profile assignments need to be anchored to the existing library layout and
+   verified account/Access subject. Inventory of actual profile names is blocked
+   by (1). Do not auto-grant the whole disk to anyone with a Prims account.
+
+## Signed Mini server correction — 2026-09-28
+
+Follow [MAC-SERVER.md](MAC-SERVER.md). The server must have its own stable
+company-signed application identity. Raw Fleet Python diagnostics are not server
+acceptance. `--pack-service` is retired; `--server-app` verifies the company
+signature, notarization ticket and Gatekeeper before replacing the hello job.
+Mini company signing identity and `eidos-notary` profile were absent on inspection.
+Existing signed Prims Desktop on port 7749 is a different product, not signing-key
+custody and not permission inheritance for this server.
+
+## Current verified state — 2026-09-28
+
+Server identity, signing, notarization, native disk permission, real-profile CRUD,
+cleanup, permission continuity across two upgrades, and rollback/restore passed.
+Read MAC-SERVER.md for exact versions, receipts, and archive checksums. Profiles
+are under `/Volumes/Sandisk2TB/Prims/profiles`; eight names were read through the
+server. Account-to-profile grants still require existing SSO identity verification.
+The public edge health fix from PR #11 is deployed and verified, including outage/recovery. ChatGPT OAuth, live agent
+revocation, Access sign-in, and human browser acceptance remain unfinished.
+
+## Ordered execution from here (steps 1–2 completed)
+
+1. Build/sign the dedicated server and resolve OS access for its installed identity. Read only the
+   immediate Prims children and record the actual profile contract.
+2. Install the reviewed candidate using `scripts/install-mini.py STATE --server-app "$HOME/Applications/PrimsDrive Server.app"`.
+   Reuse the existing probe secret, tunnel token, port, login-agent labels, and VPC
+   service. No secrets in git or command arguments; never change the root.
+3. Bind the existing `prims-sso` Worker as `PRIMS_SSO`; set operator-owned
+   `DRIVE_ACCOUNT_PROFILES` for the verified owner account. Issue a short-lived
+   test agent at Prims SSO and grant `primsdrive:profile:<profile>` read/write.
+4. Update only the existing Worker via Cloudflare MCP, preserving its bindings
+   and `MINI_PROBE_SECRET`. Write one uniquely named canary, read exact bytes,
+   overwrite with its ETag, list it, delete with its ETag, verify absent. Repeat
+   via MCP; revoke the token and verify the next request fails. No real pack edits.
+5. Prioritize direct ChatGPT OAuth integration per CHATGPT-CONNECTION.md. Finish the existing SSO provider/integration work in prims-sso#2/#3. Configure
+   Access with **that** IdP for `/` and `/app`, keeping `/health`, `/v1/*`, `/mcp`
+   outside the human gate. No substitute email OTP or second account store.
+6. Set `ACCESS_ISSUER`, `ACCESS_AUD`, and verified-subject `DRIVE_HUMAN_PROFILES`.
+   Test a real passkey login with Daniel, browse actual directories, logout and
+   expiry. Confirm agent bearers cannot open HTML and cookies cannot call APIs.
+7. Merge/release candidate only after the corresponding live gates, read back CI
+   and production, close original issues individually, update HANDOFF.md. Keep
+   failed or pending gates explicit; do not label local fixtures as Sandisk proof.
+
+## Candidate contracts
+
+- Mini root is fixed in `mini/server.py`: `/Volumes/Sandisk2TB/Prims`. Filesystem
+  operations use descriptor-relative paths and no-follow traversal. Symlinks,
+  hardlinks, special files, cross-device directories, hidden/parent components,
+  absent mounts and inaccessible roots fail closed. No fallback data directory.
+- Profiles are explicit top-level directories. Object payloads use base64 JSON;
+  maximum decoded size is 16 MiB. Directory pages contain up to 128 entries.
+- Creates require `If-None-Match: *`; overwrite/delete require the SHA-256 ETag
+  returned by read. Writes use same-directory temporary files, fsync and atomic
+  rename/link, then read back before `king_ack`. Deletes are single files only.
+- The service serializes its own writes. ETag comparison is not a distributed
+  lock against concurrent File Provider writers; external writes can race the
+  comparison. Coordinate active edits; do not claim cross-writer CAS guarantees.
+- Recent `king_ack` is in-process metadata and resets on service restart. It is
+  not a persistent audit ledger. Free space is measured on the opened king root.
+- Prims SSO is the only issuer. Drive introspects the token and checks live policy
+  on each request (no auth cache). Operator account-profile mapping is an
+  additional restriction: a self-registered account cannot self-grant disk access.
+- Human HTML verifies RS256 signatures against the configured Access issuer's
+  JWKS, exact audience, time claims and explicit subject-profile grants. It never
+  uses agent keys. `/app` is read-only and does not render pack content as HTML.
+- The SSO policy store is currently its documented policy stub, not OpenFGA.
+- `npm run verify`: typecheck, TS tests (including real Python HTTP/filesystem
+  round-trip), Python path-isolation tests, Worker build. Human JWT tests use
+  generated signing keys; SSO token/policy replies in tests are fixtures.

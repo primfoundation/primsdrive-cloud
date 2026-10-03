@@ -1,3 +1,106 @@
+# Current handoff — 2026-10-03
+
+`tunnel:false` was a LaunchAgent TCC wedge, not a Worker header or probe-secret mismatch. PrimsDrive Server.app under `sh.prims.drive.hello` blocked forever in `openat` on `/Volumes/Sandisk2TB` inside `/hello` → `Store.directory()`. The Worker aborted that fetch at 3 seconds and reported `tunnel:false` / `sandisk:false`. The same binary, reached through `sshd`, returned `sandisk:true` in about 20ms.
+
+Ops already changed the mini: `sh.prims.drive.hello` starts the server through `ssh -o BatchMode=yes` to `127.0.0.1`, so the open runs in the sshd context that can read the volume. Public health is storage-ready again (`tunnel:true`, `sandisk:true`, well under a second, checked 2026-10-03). Leave that job in place. Do not redo DNS. Do not rotate `MINI_PROBE_SECRET`. Do not create another tunnel or king.
+
+`sandisk_probe` in `mini/server.py` is the server-side bound (1 second) so a future direct LaunchAgent exec of the binary cannot pin `/hello`. A stuck `openat` is not cancellable; the HTTP response still returns, `sandisk` stays false while that open is in flight, and a second hello does not start another open. The installed 0.1.2 binary does not contain this bound. Ship it only through the existing company-signed path in [MAC-SERVER.md](MAC-SERVER.md). Until that build is installed, keep the ssh wrapper.
+
+Live Worker remains health-only `a4b6a971-0ab5-44af-8744-493e4ccffb8b`. Its `/mcp` is still the public placeholder. This candidate gates `/v1` and `/mcp` (401 with no bearer) and keeps `MCP_OAUTH_ENABLED` unset. Issuer work is prims-sso #12, merged as `938c98f0`, and is not deployed. ChatGPT is not installed. Next steps: [CHATGPT-CONNECTION.md](CHATGPT-CONNECTION.md).
+
+# Current handoff — 2026-09-28
+
+OAuth continuation: candidate Drive now accepts provider-form MCP credentials
+through the existing SSO's online introspection adapter; REST retains agent tokens.
+SSO candidate checks issuer, audience, expiry, client, scope and existing account/
+agent ownership. Local validation: 30 SSO tests plus account-store test; 19 Drive,
+5 filesystem and 2 installer tests; both typechecks and Drive dry-run passed.
+These are candidate/fixture proofs, not live OAuth acceptance. Current live probe
+receipt `a08b78ae7664fc37d38301f79f2223467d74ce02c35e2763fddee878d52ae060`
+confirms storage-ready and `/mcp` still a placeholder. Read CHATGPT-CONNECTION.md
+for remaining identity/provider/browser-scope gates. Never grant real profiles
+to the existing fixture accounts or enable OAuth discovery before verification.
+
+**Mini server 0.1.2 and private cloud health are working.** Company-signed,
+notarized/stapled server is installed, real eidos-agi profile CRUD/cleanup passed,
+two upgrades preserved permissions, rollback/restore passed, and public health
+correctly reports server failure and recovery. Health-only PR #11 is merged and live.
+Worker version: `a4b6a971-0ab5-44af-8744-493e4ccffb8b`.
+Read the newest [MAC-SERVER.md](MAC-SERVER.md) sections for exact proof.
+
+Next work is scoped edge API/MCP acceptance and existing Prims/Stytch OAuth,
+including a real ChatGPT connection. Public /v1 and /mcp remain placeholders;
+PR #10 holds that candidate. Do not redo native permission/signing or DNS.
+
+# Latest tested state — 2026-09-28
+
+Dedicated signed/notarized server **0.1.2 is installed on the Mini**. Real CRUD
+against the eidos-agi profile passed and the canary was deleted. Two signed
+upgrades retained disk permission without another approval. Correct profile
+root is `/Volumes/Sandisk2TB/Prims/profiles`. Read MAC-SERVER.md for receipts.
+The deployed edge probe falsely rejects sandisk:true; a health-only fix is in
+review on fix/storage-ready-health. MCP/OAuth is still not complete.
+
+# Live server continuation — 2026-09-28
+
+Read the newest section of [MAC-SERVER.md](MAC-SERVER.md). Company signing and
+notarization succeeded using the laptop's visible desktop session, even though
+SSH reported Keychain locked. The dedicated Mini server is installed and its
+native network/removable-volume prompts were approved through KVM. Its own API
+now proves Sandisk readable. The public URL currently returns the original
+stub, so older cloud-live claims must be reverified. Do not confuse shell disk
+permission with server permission. Version 0.1.1 has been built, signed and
+notarized for profile inventory and permission-continuity acceptance.
+
+# SSH continuation — 2026-09-28
+
+The laptop is reachable via the Mini's existing SSH alias `laptop`, despite
+Fleet reporting its heartbeat offline. The company Developer ID is present
+there. Exact Mini-built artifact and source are staged on the laptop; signing
+failed with `errSecInternalComponent`, and notarytool reports the login Keychain
+locked. Keychain Access has been opened for local unlock. Resume the prepared
+signing route in [MAC-SERVER.md](MAC-SERVER.md); no private-key transfer needed.
+Do not repeat the incorrect assumption that Fleet heartbeat means SSH offline.
+
+# Signed server continuation — 2026-09-28
+
+Read [MAC-SERVER.md](MAC-SERVER.md) first for the corrected server/client boundary,
+Mini build evidence, signing prerequisites and next action. PrimsDrive Server.app
+was built and its packaged HTTP fixture tests passed on the Mini at source
+83c75b36bd34b38078d91618f890a296ed2852f0. It is an ad-hoc candidate, not installed
+or notarized. Company Developer ID and notary credentials are absent on the Mini.
+Next: provision approved signing access, sign/notarize the same product, install
+its stable identity, approve its disk access through native UI, then test its API
+against Sandisk. Do not return to diagnosing unrelated Fleet Python permissions.
+
+# Project continuation — 2026-09-27 CT
+
+Daniel authorized completing the project and publishing changes. #2 is merged in PR #9 and live. Start from [PROJECT-PLAN.md](PROJECT-PLAN.md) for the full inventory, candidate code, actual blockers, and acceptance gates. #3–#7 are not complete or deployed. The original handoff follows for history.
+
+2026-09-28 UTC continuation: Drive PR #10 adds explicit verified OAuth issuer
+configuration and ChatGPT reauthorization metadata. The existing SSO's gated
+Connected Apps consent adapter is in `primfoundation/prims-sso#11`. Neither is
+deployed. Remote disk checks have been attributed to both the SSH wrapper and
+the long-lived Xcode Python process by macOS TCC; attribution depends on the
+execution path. The pack LaunchAgent's access remains unverified. See the plan for receipts and
+remaining Stytch configuration/introspection and real ChatGPT acceptance gates.
+
+2026-09-28 UTC robot practice: the existing Mini KVM relay at loopback port
+14006 can capture the desktop and deliver keyboard/mouse input through Fleet.
+System Settings navigation and screenshot changes confirmed actual control.
+The UI showed `sshd-keygen-wrapper` Full Disk Access already enabled, and one
+of several `python3` entries had Removable Volumes enabled. No permission switch
+was changed. The precise application behind that latter entry remains
+unverified; do not infer identity from its display name. A bounded read of
+`/Volumes/Sandisk2TB/Prims` through Fleet still returned `PermissionError 1`
+(receipt `5ddf97b6db6360af8b92e6fc5e0f23de85d0e2515bda88eb2555d0eec9a0f583`).
+The directory is owned by `dshanklin` with mode `drwxr-xr-x`; changing POSIX
+ownership/modes is not justified by this evidence. Robot operation is proven;
+Sandisk access and real pack-service access are not. Resolve the exact runtime's
+native macOS permission before claiming a fix. Do not bypass TCC or create a
+second data store. Fleet Robots inventory is tracked in `eidos-agi/fleet#13`;
+the page has not been built.
+
 # Handoff — drive.prims.sh live stub (2026-09-27)
 
 **Issue #2 continuation (2026-09-27 CT):** Private Tunnel + VPC hello is now installed. See [mini-tunnel.md](mini-tunnel.md) for resources, security model, verification and rollback. Health now checks the mini live; `tunnel` can be true while `sandisk` remains false. The original stub handoff below is retained as historical context. Next implementation slice is #3.

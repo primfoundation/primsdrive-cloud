@@ -1,0 +1,45 @@
+{
+  "blocker_records": [],
+  "blockers": [],
+  "created_at": "2026-09-28T07:10:55.685213Z",
+  "gate_summary": [],
+  "goal": "Company-sign and notarize Mini-built server",
+  "learning_prompts": [
+    "What broke or slowed this release?",
+    "What proof was missing until late?",
+    "Which gate should become automatic next time?",
+    "Which human approval should remain explicit?"
+  ],
+  "next_actions": [
+    "clear the blocker, then re-run the product's proof_commands (AI runs them; shipr only records)"
+  ],
+  "notes": "Local login Keychain unlock required. No key export or security-policy changes.",
+  "product_id": "source",
+  "proofs": [
+    "SSH reachable; Eidos AGI identity present; codesign errSecInternalComponent; notarytool keychainLocked"
+  ],
+  "release_model_snapshot": {
+    "approval_gates": [
+      "credentials",
+      "payments",
+      "production mutations",
+      "public publish/tag",
+      "customer/outbound messaging"
+    ],
+    "artifact_types": [],
+    "distribution_channels": [],
+    "forge_stack": [
+      "testr"
+    ],
+    "license": null,
+    "open_source_status": "unknown",
+    "proof_commands": [
+      "npm test"
+    ],
+    "proof_source": "testr",
+    "repository_visibility": "unknown"
+  },
+  "schema_version": 1,
+  "source": null,
+  "status": "blocked"
+}

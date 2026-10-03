@@ -8,7 +8,9 @@
     "test": "node --experimental-strip-types --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "dry-run": "wrangler deploy --dry-run",
-    "verify": "npm run typecheck && npm test && npm run dry-run"
+    "verify": "npm run typecheck && npm test && npm run test:mini && npm run test:installer && npm run dry-run",
+    "test:mini": "python3 -m unittest discover -s mini/tests -v",
+    "test:installer": "python3 -m unittest discover -s scripts/tests -v"
   },
   "devDependencies": {
     "@types/node": "22.18.0",

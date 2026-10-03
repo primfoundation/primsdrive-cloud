@@ -12,3 +12,8 @@ workers_dev = true
 [[vpc_services]]
 binding = "MINI_HELLO"
 service_id = "01a0e621-4249-7040-9f18-5a3cc637c652"
+
+# Existing Prims identity issuer; no second agent key database.
+[[services]]
+binding = "PRIMS_SSO"
+service = "prims-sso"

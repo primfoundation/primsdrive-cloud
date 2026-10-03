@@ -1,0 +1,7 @@
+# Resolved on the arm64 Mini with CPython 3.14.5, 2026-09-28.
+altgraph==0.17.5
+macholib==1.16.4
+packaging==26.3
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.7
+setuptools==84.0.0

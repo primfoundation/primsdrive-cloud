@@ -1,0 +1,47 @@
+{
+  "blocker_records": [],
+  "blockers": [],
+  "created_at": "2026-09-28T08:15:13.253493Z",
+  "gate_summary": [],
+  "goal": "Deploy storage-ready health fix",
+  "learning_prompts": [
+    "What broke or slowed this release?",
+    "What proof was missing until late?",
+    "Which gate should become automatic next time?",
+    "Which human approval should remain explicit?"
+  ],
+  "next_actions": [
+    "route lessons to learning-forge",
+    "watch rollback and support signals"
+  ],
+  "notes": "Existing user authorization applied. No DNS, tunnel, secret or identity replacement. Public MCP remains placeholder.",
+  "product_id": "primsdrive-health-fix",
+  "proofs": [
+    "Worker a4b6a971-0ab5-44af-8744-493e4ccffb8b; PR 11 merged 5ac1874f25e787998c5ecacba129fe7a5bde79b4; CI success; independent LOOK-0004 found no release blockers",
+    "Public health both hosts storage-ready; receipt 602f72f083df8f7b751b7ff42ee09dee5a77129610dc40d57af52a76bf5419de proves offline then recovery"
+  ],
+  "release_model_snapshot": {
+    "approval_gates": [
+      "credentials",
+      "payments",
+      "production mutations",
+      "public publish/tag",
+      "customer/outbound messaging"
+    ],
+    "artifact_types": [],
+    "distribution_channels": [],
+    "forge_stack": [
+      "testr"
+    ],
+    "license": null,
+    "open_source_status": "unknown",
+    "proof_commands": [
+      "npm test"
+    ],
+    "proof_source": "testr",
+    "repository_visibility": "unknown"
+  },
+  "schema_version": 1,
+  "source": null,
+  "status": "shipped"
+}

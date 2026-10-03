@@ -1,0 +1,14 @@
+{
+  "created_at": "2026-09-28T08:06:20.048093Z",
+  "goal": "Verify health-only storage-ready fix",
+  "notes": "",
+  "product_id": "primsdrive-health-fix",
+  "proofs": [
+    "Seven tests, typecheck and wrangler dry-run passed on laptop at f4f2a5e"
+  ],
+  "schema_version": 1,
+  "status": "passed",
+  "test_commands_snapshot": [
+    "npm test"
+  ]
+}

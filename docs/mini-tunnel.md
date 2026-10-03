@@ -98,9 +98,48 @@ Fleet evidence receipts (read back, not merely queued):
 - Independent public-port failure and recovered healthy edge:
   `3ad84853c3aa1cd8e9f02e8311a69f5a73dd4047a8c6bb3c684251a498a004bc`
 
-Delivery: source is committed on local branch `issue-2-mini-tunnel`. Automatic
-approval review blocked the GitHub push pending explicit publishing approval.
-No PR has been created and issue #2 has not been closed. The live infrastructure
-and Worker update are already in place; retain this branch for publication.
+Delivery: Daniel authorized publication. PR #9 passed CI and merged as
+`e32feb2557a51e0e4e0d20f07728551a1b1d9ab1`; #2 is closed.
 
 Next: issue #3, a separate change to serve packs from the existing Sandisk king.
+
+## LaunchAgent openat wedge — 2026-10-03
+
+Confirmed on daniels-mac-mini. This was not a Worker header mismatch and not a
+`MINI_PROBE_SECRET` mismatch. Leave DNS, tunnel `primsdrive-mini`
+(`c05e2d60-5b92-4bf2-9978-5b2038ee47a7`), VPC service
+`01a0e621-4249-7040-9f18-5a3cc637c652`, and the probe secret as they are.
+
+| Observation | Result |
+| --- | --- |
+| `sh.prims.drive.hello` exec of PrimsDrive Server.app | `/hello` never returned. The process sat in `openat` on `/Volumes/Sandisk2TB` inside `Store.directory()` |
+| Worker `miniStatus` | Aborted at 3s and published `tunnel:false`, `sandisk:false` |
+| Same binary via `sshd` | `sandisk:true` in about 20ms |
+| Live mitigation already applied | The hello LaunchAgent wraps the server with `ssh -o BatchMode=yes` to `127.0.0.1`, so the open uses the sshd context that can read the volume |
+| Public health after that job change | `status:storage-ready`, `tunnel:true`, `sandisk:true` (2026-10-03) |
+
+`Store.directory()` opens `/Volumes/Sandisk2TB` on the request thread before
+`/hello` writes a body. Under the LaunchAgent TCC context that `openat` does
+not return. The Worker then has nothing to classify and reports the tunnel down.
+The volume itself was readable the whole time.
+
+`sandisk_probe` (default 1s) waits for `store.health()` off the request thread.
+Hello still returns `ok:true`, `service:"primsdrive-mini-hello"`, and the nonce.
+`sandisk` is false when the open does not finish, when it raises, or when an
+open is already in flight. A stuck `openat` cannot be killed from Python; the
+bound only releases the HTTP response and stops a pile of further opens. That
+is what makes a direct LaunchAgent `ProgramArguments` exec safe for the public
+probe: tunnel can stay true while the king open is wedged. It does not grant
+TCC, and it does not make `sandisk:true` in a context that cannot open the volume.
+
+The running notarized 0.1.2 app does not include `sandisk_probe`. Keep the ssh
+BatchMode wrapper until a company-signed build from this source is installed
+with the path in [MAC-SERVER.md](MAC-SERVER.md). Do not point the job back at a
+raw `python3` or at the current 0.1.2 binary. Hello continues to require
+`x-probe-nonce` (the same header as `X-Probe-Nonce`). `X-PrimsDrive-Nonce` alone
+is a 400.
+
+A later Worker deploy of this branch adds `probe` on `/health` (`ok`,
+`timeout`, `unauthorized`, `rejected`, `redirect`, `bad_response`,
+`unconfigured`, `unreachable`). The field has no secret, nonce, or upstream body.
+The deployed health-only script does not emit it yet.
